@@ -6,8 +6,9 @@ frontend:
         - npm ci
     build:
       commands:
-        - npm run export
+        - npm run build
   artifacts:
+    # Con output:'export', Next genera estáticos en /out
     baseDirectory: out
     files:
       - '**/*'
