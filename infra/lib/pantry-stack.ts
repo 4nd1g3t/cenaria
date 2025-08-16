@@ -57,25 +57,25 @@ export class PantryStack extends cdk.Stack {
     // Lambdas
     const commonFnProps = {
       runtime: Runtime.NODEJS_20_X,
-      architecture: Architecture.ARM_64,
+      architecture: Architecture.X86_64,
       timeout: Duration.seconds(10),
       memorySize: 256,
       environment: {
         TABLE_NAME: table.tableName,
       },
       bundling: {
-        externalModules: [], // empaqueta todo
         minify: true,
         sourceMap: true,
       },
-    } as const;
+    };
 
     const pantryGet = new NodejsFunction(this, 'PantryGetFn', {
-      entry: path.join(__dirname, '../../services/pantry/src/pantry-get.ts'),
+      entry: path.join(__dirname, '../services/pantry/src/pantry-get.ts'),
       ...commonFnProps,
     });
+
     const pantryPost = new NodejsFunction(this, 'PantryPostFn', {
-      entry: path.join(__dirname, '../../services/pantry/src/pantry-post.ts'),
+      entry: path.join(__dirname, '../services/pantry/src/pantry-post.ts'),
       ...commonFnProps,
     });
 
