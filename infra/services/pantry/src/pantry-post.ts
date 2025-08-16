@@ -57,7 +57,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       GSI1PK: `USER#${sub}`,
       GSI1SK: nameNorm,
       GSI2PK: `USER#${sub}#CAT#${it.category ?? 'otros'}`,
-      GSI2SK: nowMs
+      GSI2SK: String(nowMs)
     };
     responseItems.push({
       id: item.id,
