@@ -1,4 +1,4 @@
-import { getServerPantry } from "@/app/lib/pantry.server";
+import { getServerPantry } from "@/lib/pantry.server";
 
 export const runtime = "nodejs";
 

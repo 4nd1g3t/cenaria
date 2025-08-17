@@ -209,13 +209,13 @@ export class PantryClient {
     const etag = res.headers.get("etag");
 
     // Intenta parsear JSON, aún si status es error
-    let data: any = null;
+    let data: unknown = null;
     const text = await res.text();
     try {
       data = text ? JSON.parse(text) : null;
     } catch {
       // Mantener text crudo si no es JSON
-      data = text as any;
+      data = text;
     }
 
     if (!res.ok) {
@@ -258,7 +258,7 @@ export class ApiError extends Error {
  */
 async function defaultGetIdToken(): Promise<string> {
   // TODO: reemplazar con tu integración real de autenticación
-  const token = (globalThis as any).__CENARIA_ID_TOKEN__ as string | undefined;
+  const token = (globalThis as { __CENARIA_ID_TOKEN__?: string }).__CENARIA_ID_TOKEN__;
   if (!token) {
     throw new Error("ID Token no disponible. Inyecta getIdToken en pantryClient o configura __CENARIA_ID_TOKEN__.");
   }
