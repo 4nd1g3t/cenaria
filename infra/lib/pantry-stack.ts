@@ -105,7 +105,13 @@ export class PantryStack extends cdk.Stack {
       ...commonFnProps,
     });
 
+    const pantryGetById = new NodejsFunction(this, 'PantryGetByIdFn', {
+      entry: path.join(__dirname, '..', 'services', 'pantry', 'src', 'pantry-get-by-id.ts'),
+      ...commonFnProps,
+    });
+
     table.grantReadData(pantryGet);
+    table.grantReadData(pantryGetById);
     table.grantReadWriteData(pantryPost);
 
     // =========================
@@ -147,6 +153,9 @@ export class PantryStack extends cdk.Stack {
 
     pantry.addMethod('GET', new LambdaIntegration(pantryGet), authed);
     pantry.addMethod('POST', new LambdaIntegration(pantryPost), authed);
+
+    const pantryId = pantry.addResource('{id}');
+    pantryId.addMethod('GET', new LambdaIntegration(pantryGetById), authed);
 
     // =========================
     // Salidas
