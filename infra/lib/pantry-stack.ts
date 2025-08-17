@@ -120,11 +120,17 @@ export class PantryStack extends cdk.Stack {
       ...commonFnProps,
     });
 
+    const pantryDelete = new NodejsFunction(this, 'PantryDeleteFn', {
+      entry: path.join(__dirname, '..', 'services', 'pantry', 'src', 'pantry-delete.ts'),
+      ...commonFnProps,
+    });
+
     table.grantReadData(pantryGet);
     table.grantReadData(pantryGetById);
     table.grantReadWriteData(pantryPut);
     table.grantReadWriteData(pantryPost);
     table.grantReadWriteData(pantryPatch);
+    table.grantReadWriteData(pantryDelete);
 
     // =========================
     // API Gateway (REST)
@@ -170,6 +176,7 @@ export class PantryStack extends cdk.Stack {
     pantryId.addMethod('GET', new LambdaIntegration(pantryGetById), authed);
     pantryId.addMethod('PUT', new LambdaIntegration(pantryPut), authed);
     pantryId.addMethod('PATCH', new LambdaIntegration(pantryPatch), authed);
+    pantryId.addMethod('DELETE', new LambdaIntegration(pantryDelete), authed);
 
     // =========================
     // Salidas
