@@ -111,8 +111,7 @@ export class PantryStack extends cdk.Stack {
     });
 
     const pantryPut = new NodejsFunction(this, 'PantryPutFn', {
-      entry: path.join(__dirname, '..
-        ', 'services', 'pantry', 'src', 'pantry-put.ts'),
+      entry: path.join(__dirname, '..', 'services', 'pantry', 'src', 'pantry-put.ts'),
       ...commonFnProps,
     });
 
