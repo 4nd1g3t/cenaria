@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { PantryClient } from "@/app/lib/pantry";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://api.cenaria.app";
-
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.cenaria.app";
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
@@ -24,11 +22,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const client = new PantryClient({
-      baseURL: BASE_URL,
-      getIdToken: async () => idToken,
-    });
-
+    const client = new PantryClient({ baseURL: BASE_URL, getIdToken: async () => idToken });
     const res = await client.list({ limit: 5 });
     return NextResponse.json({ ok: true, baseURL: BASE_URL, ...res.data }, { status: 200 });
   } catch (err: any) {
