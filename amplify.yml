@@ -5,10 +5,14 @@ applications:
       phases:
         preBuild:
           commands:
+            # (Opcional) fija Node si lo necesitas:
+            # - nvm install 18
+            # - nvm use 18
             - npm ci
         build:
           commands:
-            - npm run build
+            # Evita que warnings rompan el build en algunos setups
+            - CI='' npm run build
       artifacts:
         baseDirectory: .next
         files:
