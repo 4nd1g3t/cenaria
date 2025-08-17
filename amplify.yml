@@ -1,17 +1,12 @@
 version: 1
 applications:
-  - appRoot: /
-    frontend:
+  - frontend:
       phases:
         preBuild:
           commands:
-            # (Opcional) fija Node si lo necesitas:
-            # - nvm install 18
-            # - nvm use 18
             - npm ci
         build:
           commands:
-            # Evita que warnings rompan el build en algunos setups
             - CI='' npm run build
       artifacts:
         baseDirectory: .next
