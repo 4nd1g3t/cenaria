@@ -1,54 +1,124 @@
-// components/pantry/RowActions.tsx
-"use client";
-import { useTransition } from "react";
-import { deleteActionVoid, updateActionVoid } from "@/app/despensa/actions"; // si usas wrappers void
-// o: import { deleteAction, updateAction } ...
+'use client';
 
-export default function RowActions({
-  id,
-  version,
-  name,
-  quantity,
-  unit,
-}: {
+import * as React from 'react';
+import { useActionState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  deleteItemAction,
+  type ActionState,
+} from '@/app/despensa/actions';
+import EditPantryItemDialog from './EditPantryItemDialog';
+
+type Props = {
   id: string;
-  version?: number;        // ✅ reemplaza etag por version
+  version?: number | null;
   name: string;
   quantity: number;
   unit: string;
-}) {
-  const [pending, start] = useTransition();
+  category?: string | null;
+};
 
-  function onDelete() {
-    start(async () => {
-      const fd = new FormData();
-      fd.set("id", id);
-      if (typeof version === "number") fd.set("version", String(version)); // ✅
-      await deleteActionVoid(fd); // o deleteAction(fd)
-    });
-  }
+type DeleteData = { id: string };
 
-  function onEdit() {
-    const newName = prompt("Nombre", name) ?? name;
-    const newQtyStr = prompt("Cantidad", quantity.toString());
-    const newQty = newQtyStr ? Number(newQtyStr) : quantity;
-    const newUnit = prompt("Unidad", unit) ?? unit;
+export default function RowActions(props: Props) {
+  const router = useRouter();
 
-    start(async () => {
-      const fd = new FormData();
-      fd.set("id", id);
-      if (typeof version === "number") fd.set("version", String(version)); // ✅
-      if (newName !== name) fd.set("name", newName);
-      if (!Number.isNaN(newQty) && newQty !== quantity) fd.set("quantity", String(newQty));
-      if (newUnit !== unit) fd.set("unit", newUnit);
-      await updateActionVoid(fd); // o updateAction(fd)
-    });
-  }
+  const [openEdit, setOpenEdit] = React.useState(false);
+  const [localVersion, setLocalVersion] = React.useState<number | undefined>(
+    typeof props.version === 'number' ? props.version : undefined
+  );
+
+  const initialDel: ActionState<DeleteData> = { ok: false };
+  const [delState, delAction, delPending] = useActionState(deleteItemAction, initialDel);
+
+  const handleUpdatedVersion = (v?: number) => {
+    if (typeof v === 'number') setLocalVersion(v);
+  };
+
+  React.useEffect(() => {
+    if (delState?.ok) {
+      router.refresh();
+    }
+  }, [delState, router]);
 
   return (
-    <div className="flex gap-2">
-      <button onClick={onEdit} disabled={pending} className="px-2 py-1 border rounded">Editar</button>
-      <button onClick={onDelete} disabled={pending} className="px-2 py-1 border rounded">Borrar</button>
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        className="rounded-md border px-2 py-1 text-sm text-gray-700 hover:bg-gray-50"
+        onClick={() => setOpenEdit(true)}
+      >
+        Editar
+      </button>
+
+      <details className="relative">
+        <summary className="list-none">
+          <button
+            type="button"
+            className="rounded-md border border-red-300 bg-red-50 px-2 py-1 text-sm text-red-700 hover:bg-red-100 disabled:opacity-50"
+            disabled={delPending}
+          >
+            {delPending ? 'Eliminando…' : 'Eliminar'}
+          </button>
+        </summary>
+        <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white p-3 shadow-lg">
+          <p className="text-sm text-gray-700">
+            ¿Seguro que deseas eliminar <span className="font-medium">{props.name}</span>?
+          </p>
+          {delState?.error ? (
+            <p
+              className={`mt-2 text-xs ${
+                delState.error.code === 'CONFLICT' ? 'text-amber-600' : 'text-red-600'
+              }`}
+            >
+              {delState.error.code === 'CONFLICT'
+                ? 'El ítem cambió/ya no existe. Refresca e intenta de nuevo.'
+                : delState.error.message || 'Error eliminando.'}
+            </p>
+          ) : null}
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              type="button"
+              className="rounded-md border px-3 py-1 text-sm"
+              onClick={(e) => {
+                const details = (e.currentTarget.closest('details') as HTMLDetailsElement) || null;
+                if (details) details.open = false;
+              }}
+              disabled={delPending}
+            >
+              Cancelar
+            </button>
+
+            <form action={delAction}>
+              <input type="hidden" name="id" value={props.id} />
+              {typeof localVersion === 'number' ? (
+                <input type="hidden" name="version" value={String(localVersion)} />
+              ) : null}
+              <button
+                type="submit"
+                className="rounded-md bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                disabled={delPending}
+              >
+                Confirmar
+              </button>
+            </form>
+          </div>
+        </div>
+      </details>
+
+      <EditPantryItemDialog
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        item={{
+          id: props.id,
+          version: localVersion,
+          name: props.name,
+          quantity: props.quantity,
+          unit: props.unit,
+          category: props.category ?? undefined,
+        }}
+        onUpdatedVersion={handleUpdatedVersion}
+      />
     </div>
   );
 }
