@@ -1,5 +1,5 @@
 import "server-only";
-import { PantryClient } from "./pantry";
+import { PantryClient } from "./_pantry";
 import { cookies } from "next/headers";
 
 /**

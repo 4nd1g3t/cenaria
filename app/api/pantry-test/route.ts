@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PantryClient } from "@/lib/pantry";
+import { PantryClient } from "@/lib/_pantry";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.cenaria.app";
 export const runtime = "nodejs";

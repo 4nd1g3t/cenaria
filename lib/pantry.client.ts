@@ -1,5 +1,5 @@
 "use client";
-import { PantryClient } from "./pantry";
+import { PantryClient } from "./_pantry";
 
 declare global {
   interface Window {
