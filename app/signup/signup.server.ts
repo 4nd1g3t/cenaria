@@ -22,7 +22,7 @@ export async function signUpAction(_prev: AuthActionState, formData: FormData): 
   if (password !== confirmPassword) return { ok: false, error: { code: 'VALIDATION', message: 'Las contraseñas no coinciden' } };
 
   try {
-    // 1) Signup
+    // 1) signup
     const res = await fetch(`${API_URL}/auth/signup`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -36,27 +36,26 @@ export async function signUpAction(_prev: AuthActionState, formData: FormData): 
       return { ok: false, error: { code: 'SIGNUP', message: msg, status } };
     }
 
-    // 2) Auto-signin
+    // 2) auto-signin
     const resSignIn = await fetch(`${API_URL}/auth/signin`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email, password, fullName }),
       cache: 'no-store',
     });
-
-    if (!resSignIn.ok) {
-      // si falla auto-login, manda al /signin
-      return { ok: true, next: `/signin?next=${encodeURIComponent(next)}` };
-    }
+    if (!resSignIn.ok) return { ok: true, next: `/signin?next=${encodeURIComponent(next)}` };
 
     const data = (await resSignIn.json()) as SignInResponse;
     if (!data.idToken) return { ok: true, next: `/signin?next=${encodeURIComponent(next)}` };
 
     const jar = await cookies();
     jar.set('idToken', data.idToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
-    if (data.refreshToken) jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+    if (data.refreshToken) {
+      jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+    }
+    // Guarda email para /auth/refresh
+    jar.set('email', email, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
 
-    // devolvemos estado; el cliente hará la navegación
     return { ok: true, next };
   } catch (err) {
     const status = (err as { status?: number })?.status;

@@ -35,7 +35,11 @@ export async function signInAction(_prev: AuthActionState, formData: FormData): 
 
     const jar = await cookies();
     jar.set('idToken', data.idToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
-    if (data.refreshToken) jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+    if (data.refreshToken) {
+      jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+    }
+    // Guarda email para /auth/refresh
+    jar.set('email', email, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
 
     return { ok: true, next };
   } catch (err) {
