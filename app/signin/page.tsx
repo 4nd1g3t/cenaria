@@ -19,6 +19,9 @@ export default async function SignInPage({
         <span className="font-mono">{next}</span>.
       </p>
       <SignInForm next={next} />
+      <p className="mt-6 text-sm text-gray-600">
+        ¿No tienes cuenta? <a className="underline" href={`/signup?next=${encodeURIComponent(next)}`}>Crear cuenta</a>
+      </p>
     </main>
   );
 }
