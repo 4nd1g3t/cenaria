@@ -1,30 +1,19 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 
 export type AuthActionError = { code: string; message: string; status?: number };
-export type AuthActionState = { ok: boolean; error?: AuthActionError };
-
-type SignInResponse = {
-  idToken?: string;
-  refreshToken?: string;
-  expiresIn?: number; // segundos (opcional, si tu API lo entrega)
-  tokenType?: string; // ej. "Bearer"
-  // ...cualquier otro campo que exponga tu backend
-};
+export type AuthActionState = { ok: boolean; next?: string; error?: AuthActionError };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.cenaria.app';
 
 export async function signInAction(_prev: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const email = String(formData.get('email') || '').trim();
   const password = String(formData.get('password') || '');
-  const fullName = (formData.get('fullName') as string) || undefined; // opcional
+  const fullName = (formData.get('fullName') as string) || undefined;
   const next = (formData.get('next') as string) || '/despensa';
 
-  if (!email || !password) {
-    return { ok: false, error: { code: 'VALIDATION', message: 'Correo y contraseña son requeridos' } };
-  }
+  if (!email || !password) return { ok: false, error: { code: 'VALIDATION', message: 'Correo y contraseña son requeridos' } };
 
   try {
     const res = await fetch(`${API_URL}/auth/signin`, {
@@ -37,43 +26,18 @@ export async function signInAction(_prev: AuthActionState, formData: FormData): 
     if (!res.ok) {
       const status = res.status;
       let msg = 'Error de autenticación';
-      try {
-        const j = (await res.json()) as { message?: string };
-        if (j?.message) msg = j.message;
-      } catch {
-        // ignore
-      }
+      try { const j = (await res.json()) as { message?: string }; if (j?.message) msg = j.message; } catch {}
       return { ok: false, error: { code: 'AUTH', message: msg, status } };
     }
 
-    const data = (await res.json()) as SignInResponse;
-
-    const idToken = data.idToken;
-    if (!idToken) {
-      return { ok: false, error: { code: 'AUTH', message: 'Respuesta inválida: falta idToken' } };
-    }
+    const data = (await res.json()) as { idToken?: string; refreshToken?: string };
+    if (!data.idToken) return { ok: false, error: { code: 'AUTH', message: 'Respuesta inválida: falta idToken' } };
 
     const jar = await cookies();
-    // Cookie de sesión: httpOnly + secure
-    jar.set('idToken', idToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      path: '/',
-      // maxAge: data.expiresIn ? Math.max(60, Math.min(3600 * 12, data.expiresIn - 60)) : undefined,
-      // ^ puedes ajustar si tu backend devuelve expiresIn
-    });
+    jar.set('idToken', data.idToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+    if (data.refreshToken) jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
 
-    if (data.refreshToken) {
-      jar.set('refreshToken', data.refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/',
-      });
-    }
-
-    redirect(next);
+    return { ok: true, next };
   } catch (err) {
     const status = (err as { status?: number })?.status;
     const message = (err as { message?: string })?.message ?? 'Error de red';
