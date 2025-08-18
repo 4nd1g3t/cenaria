@@ -9,6 +9,27 @@ export function extractStatus(e: unknown): number | undefined {
   return (e as ApiStatusError)?.status ?? (e as ApiStatusError)?.response?.status;
 }
 
+function normalizeMessage(e: unknown): string {
+  const raw =
+    (e as { message?: string })?.message ??
+    String(e ?? '');
+  return raw.toLowerCase();
+}
+
+/** Heurística amplia para decidir si amerita intentar refresh. */
+export function shouldAttemptRefresh(e: unknown): boolean {
+  const code = extractStatus(e);
+  if (code === 401 || code === 403) return true;
+  const msg = normalizeMessage(e);
+  // Casos comunes: "401 Unauthorized {...}", "unauthorized", "not authorized",
+  // "token expired/invalid", "jwt expired/invalid"
+  if (/\b401\b/.test(msg)) return true;
+  if (msg.includes('unauthorized') || msg.includes('not authorized')) return true;
+  if (msg.includes('token') && (msg.includes('expired') || msg.includes('invalid'))) return true;
+  if (msg.includes('jwt') && (msg.includes('expired') || msg.includes('invalid'))) return true;
+  return false;
+}
+
 export async function readSessionCookies() {
   const jar = await cookies();
   const idToken =
@@ -48,17 +69,16 @@ export async function refreshSession(): Promise<string | null> {
   return newId;
 }
 
-/** Ejecuta `op` con idToken; si retorna 401/403 intenta refresh y reintenta una vez. */
+/** Ejecuta `op` con idToken; si falla con 401/403 (o mensaje equivalente) intenta refresh y reintenta una vez. */
 export async function attemptWithRefresh<T>(
   nextPath: string,
   op: (idToken: string) => Promise<T>
 ): Promise<T> {
-  const id = await ensureIdTokenOrRedirect(nextPath); // ← prefer-const fix
+  const id = await ensureIdTokenOrRedirect(nextPath);
   try {
     return await op(id);
   } catch (e) {
-    const code = extractStatus(e);
-    if (code === 401 || code === 403) {
+    if (shouldAttemptRefresh(e)) {
       const newId = await refreshSession();
       if (!newId) redirect(`/signin?next=${encodeURIComponent(nextPath)}`);
       return await op(newId!);
