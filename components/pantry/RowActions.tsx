@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useActionState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useFormState, useFormStatus } from 'react-dom';
 import {
   deleteItemAction,
   type ActionState,
@@ -20,6 +20,19 @@ type Props = {
 
 type DeleteData = { id: string };
 
+function DeleteSubmitBtn() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      className="rounded-md bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+      disabled={pending}
+    >
+      {pending ? 'Eliminando…' : 'Confirmar'}
+    </button>
+  );
+}
+
 export default function RowActions(props: Props) {
   const router = useRouter();
 
@@ -29,7 +42,7 @@ export default function RowActions(props: Props) {
   );
 
   const initialDel: ActionState<DeleteData> = { ok: false };
-  const [delState, delAction, delPending] = useActionState(deleteItemAction, initialDel);
+  const [delState, delAction] = useFormState(deleteItemAction, initialDel);
 
   const handleUpdatedVersion = (v?: number) => {
     if (typeof v === 'number') setLocalVersion(v);
@@ -55,10 +68,9 @@ export default function RowActions(props: Props) {
         <summary className="list-none">
           <button
             type="button"
-            className="rounded-md border border-red-300 bg-red-50 px-2 py-1 text-sm text-red-700 hover:bg-red-100 disabled:opacity-50"
-            disabled={delPending}
+            className="rounded-md border border-red-300 bg-red-50 px-2 py-1 text-sm text-red-700 hover:bg-red-100"
           >
-            {delPending ? 'Eliminando…' : 'Eliminar'}
+            Eliminar
           </button>
         </summary>
         <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white p-3 shadow-lg">
@@ -84,7 +96,6 @@ export default function RowActions(props: Props) {
                 const details = (e.currentTarget.closest('details') as HTMLDetailsElement) || null;
                 if (details) details.open = false;
               }}
-              disabled={delPending}
             >
               Cancelar
             </button>
@@ -94,13 +105,7 @@ export default function RowActions(props: Props) {
               {typeof localVersion === 'number' ? (
                 <input type="hidden" name="version" value={String(localVersion)} />
               ) : null}
-              <button
-                type="submit"
-                className="rounded-md bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                disabled={delPending}
-              >
-                Confirmar
-              </button>
+              <DeleteSubmitBtn />
             </form>
           </div>
         </div>

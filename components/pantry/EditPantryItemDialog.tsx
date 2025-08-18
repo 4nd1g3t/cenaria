@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { useActionState, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useFormState, useFormStatus } from 'react-dom';
 import { updateItemAction, type ActionState, type UpdatePayload } from '@/app/despensa/actions';
 
 type Props = {
@@ -31,6 +32,19 @@ const CATEGORIES = [
   'otros',
 ] as const;
 
+function SaveBtn() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+      disabled={pending}
+    >
+      {pending ? 'Guardando cambios…' : 'Guardar'}
+    </button>
+  );
+}
+
 export default function EditPantryItemDialog({ open, onClose, item, onUpdatedVersion }: Props) {
   const router = useRouter();
   const [localVersion, setLocalVersion] = useState<number | undefined>(
@@ -38,7 +52,7 @@ export default function EditPantryItemDialog({ open, onClose, item, onUpdatedVer
   );
 
   const initialState: ActionState<UpdatePayload> = { ok: false };
-  const [state, formAction, pending] = useActionState(updateItemAction, initialState);
+  const [state, formAction] = useFormState(updateItemAction, initialState);
 
   useEffect(() => {
     if (state?.ok && state.data) {
@@ -50,17 +64,24 @@ export default function EditPantryItemDialog({ open, onClose, item, onUpdatedVer
       onClose();
       router.refresh();
     }
-  }, [state, onClose, onUpdatedVersion, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   if (!open) return null;
 
+  const hasError = !!state?.error;
+  const isConflict = state?.error?.code === 'CONFLICT';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/40"
-        onClick={() => (!pending ? onClose() : undefined)}
+        onClick={() => onClose()}
         aria-hidden="true"
       />
+
+      {/* Modal */}
       <div
         role="dialog"
         aria-modal="true"
@@ -130,17 +151,11 @@ export default function EditPantryItemDialog({ open, onClose, item, onUpdatedVer
             </label>
           </div>
 
-          {pending ? (
-            <p className="text-sm text-blue-600">Guardando cambios…</p>
-          ) : state?.error ? (
-            <p
-              className={`text-sm ${
-                state.error.code === 'CONFLICT' ? 'text-amber-600' : 'text-red-600'
-              }`}
-            >
-              {state.error.code === 'CONFLICT'
+          {hasError ? (
+            <p className={`text-sm ${isConflict ? 'text-amber-600' : 'text-red-600'}`}>
+              {isConflict
                 ? 'El ítem cambió en el servidor. Refresca la lista e intenta de nuevo.'
-                : state.error.message || 'Ocurrió un error.'}
+                : state?.error?.message || 'Ocurrió un error.'}
             </p>
           ) : null}
 
@@ -149,17 +164,10 @@ export default function EditPantryItemDialog({ open, onClose, item, onUpdatedVer
               type="button"
               className="rounded-lg border px-4 py-2 text-gray-700"
               onClick={onClose}
-              disabled={pending}
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-              disabled={pending}
-            >
-              Guardar
-            </button>
+            <SaveBtn />
           </div>
         </form>
       </div>
