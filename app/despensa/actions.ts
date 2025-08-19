@@ -6,6 +6,8 @@ import {
   createPantryItem,
   updatePantryItem,
   deletePantryItem,
+  MAX_PANTRY_ITEMS,
+  type AppError,
 } from '@/lib/pantry';
 
 /** Contrato mínimo v0.1 */
@@ -30,6 +32,31 @@ export type UpdatePayload = { id: string; version?: number; item?: PantryItem | 
 
 type ActionError = { code: string; message: string; status?: number };
 export type ActionState<T = unknown> = { ok: boolean; data?: T; error?: ActionError };
+
+// -------- helpers de tipado de error ----------
+function getErrorCode(e: unknown): string | undefined {
+  if (e && typeof e === 'object') {
+    const rec = e as Record<string, unknown>;
+    return typeof rec.code === 'string' ? rec.code : undefined;
+  }
+  return undefined;
+}
+
+function getErrorMessage(e: unknown): string | undefined {
+  if (e && typeof e === 'object' && 'message' in e) {
+    const m = (e as { message?: unknown }).message;
+    return typeof m === 'string' ? m : undefined;
+  }
+  return undefined;
+}
+
+function getErrorStatus(e: unknown): number | undefined {
+  if (e && typeof e === 'object') {
+    const s = (e as Record<string, unknown>).status;
+    return typeof s === 'number' ? s : undefined;
+  }
+  return undefined;
+}
 
 /* ===========================
  * CREATE
@@ -56,18 +83,30 @@ export async function createItemAction(
       return { ok: false, error: { code: 'VALIDATION', message: 'Unidad requerida' } };
     }
 
-    const result = await attemptWithRefresh('/despensa', (idToken) =>
-      createPantryItem({ idToken, input })
-    ) as CreateResult;
+    // Nota: si en el cliente pasas currentCount, createPantryItem validará sin red extra
+    const result = (await attemptWithRefresh('/despensa', (idToken) =>
+      createPantryItem({ idToken, input /*, currentCount */ })
+    )) as CreateResult;
 
     revalidatePath('/despensa');
     return { ok: true, data: result?.item ?? null };
   } catch (err: unknown) {
-    const status = extractStatus(err);
-    const message = (err as { message?: string })?.message ?? 'Error creando ítem';
+    // Extrae status del helper actual y además revisa campos tipados
+    const status = extractStatus(err) ?? getErrorStatus(err);
+    const code = getErrorCode(err) ?? (status === 409 ? 'CONFLICT' : 'ERROR');
+
+    let message: string;
+    if (code === 'PANTRY_LIMIT_EXCEEDED') {
+      message = `No puedes agregar más de ${MAX_PANTRY_ITEMS} ingredientes en la despensa.`;
+    } else if (status === 409) {
+      message = 'Conflicto: el ítem cambió en el servidor. Refresca la lista e intenta de nuevo.';
+    } else {
+      message = getErrorMessage(err) ?? 'Error creando ítem';
+    }
+
     return {
       ok: false,
-      error: { code: status === 409 ? 'CONFLICT' : 'ERROR', message, status },
+      error: { code, message, status },
     };
   }
 }
@@ -107,9 +146,9 @@ export async function updateItemAction(
       patch.category = cat ? cat : undefined;
     }
 
-    const result = await attemptWithRefresh('/despensa', (idToken) =>
+    const result = (await attemptWithRefresh('/despensa', (idToken) =>
       updatePantryItem({ idToken, id, version, patch })
-    ) as UpdateResult;
+    )) as UpdateResult;
 
     revalidatePath('/despensa');
 
@@ -124,11 +163,13 @@ export async function updateItemAction(
 
     return { ok: true, data: payload };
   } catch (err: unknown) {
-    const status = extractStatus(err);
-    const message =
-      status === 409
-        ? 'El ítem cambió en el servidor. Refresca la lista e intenta de nuevo.'
-        : (err as { message?: string })?.message ?? 'Error actualizando ítem';
+    const status = extractStatus(err) ?? getErrorStatus(err);
+    let message: string;
+    if (status === 409) {
+      message = 'El ítem cambió en el servidor. Refresca la lista e intenta de nuevo.';
+    } else {
+      message = getErrorMessage(err) ?? 'Error actualizando ítem';
+    }
     return { ok: false, error: { code: status === 409 ? 'CONFLICT' : 'ERROR', message, status } };
   }
 }
@@ -156,11 +197,13 @@ export async function deleteItemAction(
     revalidatePath('/despensa');
     return { ok: true, data: { id } };
   } catch (err: unknown) {
-    const status = extractStatus(err);
-    const message =
-      status === 409
-        ? 'El ítem fue modificado o eliminado por otro proceso. Refresca e intenta de nuevo.'
-        : (err as { message?: string })?.message ?? 'Error eliminando ítem';
+    const status = extractStatus(err) ?? getErrorStatus(err);
+    let message: string;
+    if (status === 409) {
+      message = 'El ítem fue modificado o eliminado por otro proceso. Refresca e intenta de nuevo.';
+    } else {
+      message = getErrorMessage(err) ?? 'Error eliminando ítem';
+    }
     return { ok: false, error: { code: status === 409 ? 'CONFLICT' : 'ERROR', message, status } };
   }
 }

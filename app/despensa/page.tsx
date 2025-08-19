@@ -8,7 +8,7 @@ export const metadata = { title: "Despensa | Cenaria" };
 
 async function Items() {
   const idToken = await getIdTokenOrRedirect();
-  const { items } = await listPantry({ idToken, limit: 100 }); // ⬅️ desestructura
+  const { items } = await listPantry({ idToken }); // ⬅️ desestructura
   return <PantryList items={items} />;                          // ⬅️ pasa el array
 }
 
