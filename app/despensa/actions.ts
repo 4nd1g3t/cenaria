@@ -6,8 +6,7 @@ import {
   createPantryItem,
   updatePantryItem,
   deletePantryItem,
-  MAX_PANTRY_ITEMS,
-  type AppError,
+  MAX_PANTRY_ITEMS
 } from '@/lib/pantry';
 
 /** Contrato mínimo v0.1 */

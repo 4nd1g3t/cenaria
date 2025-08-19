@@ -62,13 +62,6 @@ function readStringField(obj: unknown, field: string): string | undefined {
   return undefined;
 }
 
-function readUnknown(obj: unknown, field: string): unknown {
-  if (obj && typeof obj === "object" && obj !== null) {
-    return (obj as Record<string, unknown>)[field];
-  }
-  return undefined;
-}
-
 /** parsea JSON si existe; permite 204 sin cuerpo y conserva detalles de error */
 async function handleJSON<T>(res: Response): Promise<T> {
   if (res.status === 204) return undefined as T;

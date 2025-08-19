@@ -45,5 +45,8 @@
     "infra",
     "cdk.out",
     "node_modules"
-  ]
+  ],
+  "types": ["node", "aws-lambda"],
+  "typeRoots": ["./node_modules/@types"],
+  "skipLibCheck": true
 }
