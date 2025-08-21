@@ -1,5 +1,5 @@
 // app/signin/page.tsx
-import { SignInForm } from './signin-form';
+import { SignInForm } from '@/components/signin/signin-form';
 
 type SearchParams = { next?: string };
 
@@ -9,7 +9,7 @@ export default async function SignInPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const next = sp?.next ?? '/despensa';
+  const next = sp?.next ?? '/pantry';
 
   return (
     <main className="mx-auto max-w-md p-6">

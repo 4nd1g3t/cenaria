@@ -1,19 +1,8 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { createItemActionVoid } from "@/app/despensa/actions";
-
-const UNITS = ["g", "kg", "ml", "l", "u", "tbsp", "tsp", "cup", "pack", "other"] as const;
-const CATEGORIES = [
-  "verduras",
-  "frutas",
-  "carnes",
-  "lácteos",
-  "granos",
-  "especias",
-  "enlatados",
-  "otros",
-] as const;
+import { createItemActionVoid } from "@/app/pantry/actions";
+import { UNITS, CATEGORIES } from "@/lib/units";
 
 function SubmitBtn() {
   const { pending } = useFormStatus();

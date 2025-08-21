@@ -1,4 +1,4 @@
-// app/despensa/page.tsx
+// app/pantry/page.tsx
 import PantryForm from "@/components/pantry/PantryForm";
 import PantryList from "@/components/pantry/PantryList";
 import { listPantry } from "@/lib/pantry";

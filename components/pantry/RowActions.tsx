@@ -6,7 +6,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import {
   deleteItemAction,
   type ActionState,
-} from '@/app/despensa/actions';
+} from '@/app/pantry/actions';
 import EditPantryItemDialog from './EditPantryItemDialog';
 
 type Props = {

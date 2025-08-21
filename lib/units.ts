@@ -1,16 +1,33 @@
 // lib/units.ts
-export type Unit = "g" | "kg" | "ml" | "l" | "pieza" | "taza" | "cda" | "cdta";
+export type Unit = "g" | "kg" | "ml" | "l" | "unit" | "cup" | "tbsp" | "tsp" | "pack" | "other";
 type BaseKind = "mass" | "volume" | "other";
 
+export type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export const UNITS = ["g", "kg", "ml", "l", "unit", "cup", "tbsp", "tsp", "pack", "other"];
+export const CATEGORIES = [
+  "verduras",
+  "frutas",
+  "carnes",
+  "lácteos",
+  "granos",
+  "especias",
+  "enlatados",
+  "otros",
+];
+
+
 const BASE: Record<Unit, { kind: BaseKind; toBase: number; baseUnit: Unit }> = {
-  g:   { kind: "mass",   toBase: 1,     baseUnit: "g"  },
-  kg:  { kind: "mass",   toBase: 1000,  baseUnit: "g"  },
-  ml:  { kind: "volume", toBase: 1,     baseUnit: "ml" },
-  l:   { kind: "volume", toBase: 1000,  baseUnit: "ml" },
-  pieza: { kind: "other", toBase: 1, baseUnit: "pieza" },
-  taza:  { kind: "other", toBase: 1, baseUnit: "taza"  },
-  cda:   { kind: "other", toBase: 1, baseUnit: "cda"   },
-  cdta:  { kind: "other", toBase: 1, baseUnit: "cdta"  },
+  g:    { kind: "mass",   toBase: 1,     baseUnit: "g"  },
+  kg:   { kind: "mass",   toBase: 1000,  baseUnit: "g"  },
+  ml:   { kind: "volume", toBase: 1,     baseUnit: "ml" },
+  l:    { kind: "volume", toBase: 1000,  baseUnit: "ml" },
+  unit: { kind: "other", toBase: 1, baseUnit: "unit" },
+  cup:  { kind: "other", toBase: 1, baseUnit: "cup"  },
+  tbsp: { kind: "other", toBase: 1, baseUnit: "tbsp"   },
+  tsp:  { kind: "other", toBase: 1, baseUnit: "tsp"  },
+  pack: { kind: "other", toBase: 1, baseUnit: "pack"  },
+  other:{ kind: "other", toBase: 1, baseUnit: "other"  },
 };
 
 export function isConvertible(a: Unit, b: Unit): boolean {

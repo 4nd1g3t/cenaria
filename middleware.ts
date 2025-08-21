@@ -15,8 +15,8 @@ function hasIdTokenCookie(req: NextRequest): boolean {
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
-  // Solo proteger /despensa y subrutas
-  const isProtected = pathname === '/despensa' || pathname.startsWith('/despensa/');
+  // Solo proteger /pantry y subrutas
+  const isProtected = pathname === '/pantry' || pathname.startsWith('/pantry/');
   if (!isProtected) return NextResponse.next();
 
   if (hasIdTokenCookie(req)) {
@@ -32,5 +32,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/despensa/:path*'],
+  matcher: ['/pantry/:path*'],
 };

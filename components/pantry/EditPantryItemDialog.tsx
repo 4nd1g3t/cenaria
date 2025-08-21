@@ -4,7 +4,8 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormState, useFormStatus } from 'react-dom';
-import { updateItemAction, type ActionState, type UpdatePayload } from '@/app/despensa/actions';
+import { updateItemAction, type ActionState, type UpdatePayload } from '@/app/pantry/actions';
+import { UNITS, CATEGORIES } from '@/lib/units';
 
 type Props = {
   open: boolean;
@@ -19,18 +20,6 @@ type Props = {
   };
   onUpdatedVersion?: (newVersion?: number) => void;
 };
-
-const UNITS = ['g', 'kg', 'ml', 'l', 'u', 'tbsp', 'tsp', 'cup', 'pack', 'other'] as const;
-const CATEGORIES = [
-  'verduras',
-  'frutas',
-  'carnes',
-  'lácteos',
-  'granos',
-  'especias',
-  'enlatados',
-  'otros',
-] as const;
 
 function SaveBtn() {
   const { pending } = useFormStatus();

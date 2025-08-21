@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { signInAction, type AuthActionState } from '@/app/signin/signin.server';
+import { signInAction } from '@/app/signin/signin.server';
+import { type AuthActionState } from '@/lib/constants';
 
 function SubmitBtn() {
   const { pending } = useFormStatus();
@@ -22,7 +23,7 @@ export function SignInForm({ next }: { next: string }) {
 
   React.useEffect(() => {
     if (state?.ok) {
-      const dest = state.next || next || '/despensa';
+      const dest = state.next || next || '/pantry';
       window.location.assign(dest);
     }
   }, [state, next]);

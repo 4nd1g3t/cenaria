@@ -1,9 +1,9 @@
 'use client';
-
 import * as React from 'react';
 import { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { signUpAction, type AuthActionState } from '@/app/signup/signup.server';
+import { signUpAction } from '@/app/signup/signup.server';
+import { type AuthActionState } from '@/lib/constants';
 
 function SubmitBtn() {
   const { pending } = useFormStatus();
@@ -23,7 +23,7 @@ export function SignUpForm({ next }: { next: string }) {
 
   useEffect(() => {
     if (state?.ok) {
-      const dest = state.next || next || '/despensa';
+      const dest = state.next || next || '/pantry';
       // navegación completa para asegurar que las cookies httpOnly apliquen
       window.location.assign(dest);
     }

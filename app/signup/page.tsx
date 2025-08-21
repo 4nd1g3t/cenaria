@@ -1,5 +1,5 @@
 // app/signup/page.tsx
-import { SignUpForm } from './signup-form';
+import { SignUpForm } from '@/components/signup/signup-form';
 
 type SearchParams = { next?: string };
 
@@ -9,7 +9,7 @@ export default async function SignUpPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const next = sp?.next ?? '/despensa';
+  const next = sp?.next ?? '/pantry';
 
   return (
     <main className="mx-auto max-w-md p-6">

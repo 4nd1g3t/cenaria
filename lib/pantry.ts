@@ -1,5 +1,6 @@
 // lib/pantry.ts
-
+import { API_URL, MAX_PANTRY_ITEMS, GSI1, TABLE } from "./constants";
+import { UNITS } from "./units";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -10,38 +11,30 @@ import {
 import { normalizeName } from "./strings";
 import type { Unit } from "./units";
 
-/** ================== Config ================== */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://api.cenaria.app";
-export const MAX_PANTRY_ITEMS = 50;
-
-const TABLE = process.env.DDB_TABLE!;
-const GSI1 = process.env.DDB_GSI1_NAME || "GSI1"; // por name_normalized
-
 /** ================== Tipos ================== */
 export interface PantryItem {
   id: string;
   name: string;
   name_normalized: string;
   quantity: number;
-  unit: Unit;
+  unit: Unit | string;
   version: number;
-  updatedAt: number;
   category?: string;
   perishable?: boolean;
   notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface NewPantryItem {
   name: string;
+  name_normalized?: string;
   quantity: number;
-  unit: Unit; // tipo estricto interno
+  unit: Unit | string;
   category?: string;
   perishable?: boolean;
   notes?: string;
 }
-
-/** Compat de entrada desde UI (puede venir unit:string) */
-export type NewPantryItemInput = Omit<NewPantryItem, "unit"> & { unit: string };
 
 export interface ListPantryResponse {
   items: PantryItem[];
@@ -70,46 +63,10 @@ async function handleJSON<T>(res: Response): Promise<T> {
   }
 }
 
-/** Normaliza unit:string → Unit (valida) */
-const ALLOWED_UNITS: ReadonlyArray<Unit> = [
-  "g",
-  "kg",
-  "ml",
-  "l",
-  "pieza",
-  "taza",
-  "cda",
-  "cdta",
-];
-
 function toUnit(u: string): Unit {
   const v = u?.toLowerCase().trim();
-  if (ALLOWED_UNITS.includes(v as Unit)) return v as Unit;
+  if (UNITS.includes(v as Unit)) return v as Unit;
   throw makeAppError(`invalid_unit: ${u}`);
-}
-
-/** Entrada flexible para sanitizar (sin usar any) */
-type NewPantryItemFlexible = {
-  name: string;
-  quantity: number;
-  unit: Unit | string;
-  category?: string;
-  perishable?: boolean;
-  notes?: string;
-};
-
-/** Acepta item con unit:string o Unit y devuelve tipado estricto */
-function sanitizeNewItem<T extends NewPantryItemFlexible>(item: T): NewPantryItem {
-  const unitStrict: Unit =
-    typeof item.unit === "string" ? toUnit(item.unit) : item.unit;
-  return {
-    name: item.name,
-    quantity: Number(item.quantity),
-    unit: unitStrict,
-    category: item.category,
-    perishable: item.perishable,
-    notes: item.notes,
-  };
 }
 
 /** ================== Cliente HTTP (frontend → API) ================== */
@@ -121,7 +78,7 @@ export async function listPantry(params: {
   category?: string;
   cursor?: string; // ignorado en UI actual
 }): Promise<ListPantryResponse> {
-  const url = new URL("/v1/pantry", API_BASE);
+  const url = new URL("/v1/pantry", API_URL);
   url.searchParams.set("limit", String(MAX_PANTRY_ITEMS));
   if (params.search) url.searchParams.set("search", params.search);
   if (params.category) url.searchParams.set("category", params.category);
@@ -136,16 +93,15 @@ export async function listPantry(params: {
 /** POST /v1/pantry (múltiples) — ahora acepta unit:string o Unit */
 export async function createPantryItems(params: {
   idToken: string;
-  items: Array<NewPantryItem | NewPantryItemInput>;
+  items: Array<PantryItem | NewPantryItem>;
 }): Promise<{ items: PantryItem[] }> {
-  const strict = params.items.map(sanitizeNewItem);
-  const res = await fetch(`${API_BASE}/v1/pantry`, {
+  const res = await fetch(`${API_URL}/v1/pantry`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${params.idToken}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify({ items: strict }),
+    body: JSON.stringify({ items: params.items }),
   });
   return handleJSON<{ items: PantryItem[] }>(res);
 }
@@ -153,11 +109,12 @@ export async function createPantryItems(params: {
 /** ✅ Crear 1 ítem — acepta {item} o {input} desde actions.ts */
 export async function createPantryItem(params: {
   idToken: string;
-  item?: NewPantryItem | NewPantryItemInput;
-  input?: NewPantryItem | NewPantryItemInput; // alias usado por actions.ts
+  input: NewPantryItem;
 }): Promise<PantryItem> {
-  const item = params.item ?? params.input;
+  const item = params.input;
   if (!item) throw makeAppError("missing_item");
+  item.unit  = typeof item.unit === "string" ? toUnit(item.unit) : item.unit;
+  item.name_normalized = normalizeName(item.name);
   const out = await createPantryItems({ idToken: params.idToken, items: [item] });
   const created = out.items?.[0];
   if (!created) throw makeAppError("create_failed");
@@ -169,7 +126,7 @@ export async function getPantryItem(params: {
   idToken: string;
   id: string;
 }): Promise<PantryItem> {
-  const res = await fetch(`${API_BASE}/v1/pantry/${params.id}`, {
+  const res = await fetch(`${API_URL}/v1/pantry/${params.id}`, {
     headers: { Authorization: `Bearer ${params.idToken}` },
     cache: "no-store",
   });
@@ -197,7 +154,7 @@ export async function putPantryItem(params: {
   if (typeof params.version === "number") headers["If-Match"] = String(params.version);
 
   const strictUnit = toUnit(String(params.body.unit));
-  const res = await fetch(`${API_BASE}/v1/pantry/${params.id}`, {
+  const res = await fetch(`${API_URL}/v1/pantry/${params.id}`, {
     method: "PUT",
     headers,
     body: JSON.stringify({ ...params.body, unit: strictUnit }),
@@ -229,7 +186,7 @@ export async function patchPantryItem(params: {
   if (patchObj.unit !== undefined) {
     patchObj.unit = toUnit(String(patchObj.unit));
   }
-  const res = await fetch(`${API_BASE}/v1/pantry/${params.id}`, {
+  const res = await fetch(`${API_URL}/v1/pantry/${params.id}`, {
     method: "PATCH",
     headers,
     body: JSON.stringify(patchObj),
@@ -263,7 +220,7 @@ export async function deletePantryItem(params: {
   const headers: Record<string, string> = { Authorization: `Bearer ${params.idToken}` };
   if (typeof params.version === "number") headers["If-Match"] = String(params.version);
 
-  const res = await fetch(`${API_BASE}/v1/pantry/${params.id}`, {
+  const res = await fetch(`${API_URL}/v1/pantry/${params.id}`, {
     method: "DELETE",
     headers,
   });
@@ -301,7 +258,7 @@ export async function findPantryByName(sub: string, rawName: string): Promise<Pa
     quantity: number;
     unit: Unit;
     version: number;
-    updatedAt: number;
+    updatedAt: string;
     category?: string;
     perishable?: boolean;
     notes?: string;

@@ -1,17 +1,13 @@
 'use server';
 
 import { cookies } from 'next/headers';
-
-export type AuthActionError = { code: string; message: string; status?: number };
-export type AuthActionState = { ok: boolean; next?: string; error?: AuthActionError };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.cenaria.app';
+import { AuthActionState , API_URL} from '@/lib/constants';
 
 export async function signInAction(_prev: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const email = String(formData.get('email') || '').trim();
   const password = String(formData.get('password') || '');
   const fullName = (formData.get('fullName') as string) || undefined;
-  const next = (formData.get('next') as string) || '/despensa';
+  const next = (formData.get('next') as string) || '/pantry';
 
   if (!email || !password) return { ok: false, error: { code: 'VALIDATION', message: 'Correo y contraseña son requeridos' } };
 

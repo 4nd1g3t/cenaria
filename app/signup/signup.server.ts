@@ -1,21 +1,16 @@
 'use server';
-
 import { cookies } from 'next/headers';
-
-export type AuthActionError = { code: string; message: string; status?: number };
-export type AuthActionState = { ok: boolean; next?: string; error?: AuthActionError };
+import { AuthActionState, API_URL } from '@/lib/constants';
 
 type SignUpBody = { email: string; password: string; fullName: string };
 type SignInResponse = { idToken?: string; refreshToken?: string; expiresIn?: number; tokenType?: string };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.cenaria.app';
 
 export async function signUpAction(_prev: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const fullName = String(formData.get('fullName') || '').trim();
   const email = String(formData.get('email') || '').trim();
   const password = String(formData.get('password') || '');
   const confirmPassword = String(formData.get('confirmPassword') || '');
-  const next = (formData.get('next') as string) || '/despensa';
+  const next = (formData.get('next') as string) || '/pantry';
 
   if (!fullName || fullName.length < 2) return { ok: false, error: { code: 'VALIDATION', message: 'Nombre completo inválido' } };
   if (!email || !password) return { ok: false, error: { code: 'VALIDATION', message: 'Correo y contraseña son requeridos' } };

@@ -1,9 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.cenaria.app';
-
-export type ApiStatusError = { status?: number; response?: { status?: number }; message?: string };
+import { ApiStatusError, API_URL } from '@/lib/constants';
 
 export function extractStatus(e: unknown): number | undefined {
   return (e as ApiStatusError)?.status ?? (e as ApiStatusError)?.response?.status;
@@ -41,7 +38,7 @@ export async function readSessionCookies() {
   return { idToken, refreshToken, email };
 }
 
-export async function ensureIdTokenOrRedirect(nextPath: string = '/despensa'): Promise<string> {
+export async function ensureIdTokenOrRedirect(nextPath: string = '/pantry'): Promise<string> {
   const { idToken } = await readSessionCookies();
   if (!idToken) redirect(`/signin?next=${encodeURIComponent(nextPath)}`);
   return idToken!;

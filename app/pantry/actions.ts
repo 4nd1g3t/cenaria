@@ -3,25 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { attemptWithRefresh, extractStatus } from '@/lib/auth-session';
 import {
+  PantryItem,
   createPantryItem,
   updatePantryItem,
-  deletePantryItem,
-  MAX_PANTRY_ITEMS
+  deletePantryItem
 } from '@/lib/pantry';
-
-/** Contrato mínimo v0.1 */
-export type PantryItem = {
-  id: string;
-  version?: number | null;
-  name: string;
-  quantity: number;
-  unit: string;
-  category?: string | null;
-  perishable?: boolean | null;
-  notes?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-};
+import { MAX_PANTRY_ITEMS } from '@/lib/constants';
 
 type CreateResult = { item?: PantryItem | null } | null | undefined;
 type UpdateResult = { item?: PantryItem | null; version?: number } | null | undefined;
@@ -83,11 +70,11 @@ export async function createItemAction(
     }
 
     // Nota: si en el cliente pasas currentCount, createPantryItem validará sin red extra
-    const result = (await attemptWithRefresh('/despensa', (idToken) =>
-      createPantryItem({ idToken, input /*, currentCount */ })
+    const result = (await attemptWithRefresh('/pantry', (idToken) =>
+      createPantryItem({ idToken, input })
     )) as CreateResult;
 
-    revalidatePath('/despensa');
+    revalidatePath('/pantry');
     return { ok: true, data: result?.item ?? null };
   } catch (err: unknown) {
     // Extrae status del helper actual y además revisa campos tipados
@@ -145,11 +132,11 @@ export async function updateItemAction(
       patch.category = cat ? cat : undefined;
     }
 
-    const result = (await attemptWithRefresh('/despensa', (idToken) =>
+    const result = (await attemptWithRefresh('/pantry', (idToken) =>
       updatePantryItem({ idToken, id, version, patch })
     )) as UpdateResult;
 
-    revalidatePath('/despensa');
+    revalidatePath('/pantry');
 
     const newVersion =
       (result?.item?.version != null ? result?.item?.version : result?.version) ?? version;
@@ -189,11 +176,11 @@ export async function deleteItemAction(
     const versionRaw = formData.get('version');
     const version = typeof versionRaw === 'string' && versionRaw !== '' ? Number(versionRaw) : undefined;
 
-    await attemptWithRefresh('/despensa', (idToken) =>
+    await attemptWithRefresh('/pantry', (idToken) =>
       deletePantryItem({ idToken, id, version })
     );
 
-    revalidatePath('/despensa');
+    revalidatePath('/pantry');
     return { ok: true, data: { id } };
   } catch (err: unknown) {
     const status = extractStatus(err) ?? getErrorStatus(err);

@@ -11,6 +11,7 @@ export default function PantryList({ items }: { items: PantryItem[] }) {
           <th className="px-2">Nombre</th>
           <th className="px-2">Cantidad</th>
           <th className="px-2">Unidad</th>
+          <th className="px-2">Categoria</th>
           <th className="px-2"/>
         </tr>
       </thead>
@@ -20,8 +21,9 @@ export default function PantryList({ items }: { items: PantryItem[] }) {
             <td className="px-2 py-2">{it.name}</td>
             <td className="px-2 py-2">{it.quantity ?? ""}</td>
             <td className="px-2 py-2">{it.unit ?? ""}</td>
+            <td className="px-2 py-2">{it.category ?? ""}</td>
             <td className="px-2 py-2">
-              <RowActions id={it.id} version={it.version} name={it.name} quantity={it.quantity} unit={it.unit} />
+              <RowActions id={it.id} version={it.version} name={it.name} quantity={it.quantity} unit={it.unit} category={it.category} />
             </td>
           </tr>
         ))}

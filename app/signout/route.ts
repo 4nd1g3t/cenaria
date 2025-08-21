@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.cenaria.app';
+import { APP_URL, API_URL } from '@/lib/constants';
 
 export async function GET() {
   const jar = await cookies();
@@ -27,6 +26,6 @@ export async function GET() {
     jar.set(name, '', { httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 0 });
   });
 
-  const url = new URL('/signin', process.env.NEXT_PUBLIC_APP_URL || 'https://app.cenaria.app');
+  const url = new URL('/signin', APP_URL);
   return NextResponse.redirect(url);
 }
