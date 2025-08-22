@@ -2,6 +2,7 @@
 import PreparePanel  from '@/components/menu/MenuForm';
 import { API_URL } from '@/lib/constants';
 import { getIdTokenOrRedirect } from "@/lib/auth-session";
+import { ConsoleLog } from "@/lib/strings";
 
 type PageProps = {
   params: Promise<{ id: string }>; // 👈 Next 15: params como Promise
@@ -12,6 +13,7 @@ export default async function MenuPage({ params }: PageProps) {
   const idToken = await getIdTokenOrRedirect();
   return (
     <main className="p-6">
+      <ConsoleLog label="menu-page" data={{ id , tokenLen: idToken.length  }} />
       {/* ...tu header + vista del menú... */}
       <PreparePanel
         menuId={id}
