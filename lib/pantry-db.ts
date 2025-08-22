@@ -8,13 +8,14 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { normalizeName } from "./strings";
 import type { Unit } from "./units";
+import type { PantryItem } from "./pantry";
 
 const TABLE = process.env.DDB_TABLE!;
 const GSI1  = process.env.DDB_GSI1_NAME || "GSI1"; // name_normalized
 
 const ddbDoc = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
-export interface PantryItem {
+/*export interface PantryItem {
   id: string;
   name: string;
   name_normalized: string;
@@ -22,7 +23,7 @@ export interface PantryItem {
   unit: Unit;
   version: number;
   updatedAt: number;
-}
+}*/
 
 export type PantryUpdate =
   | { action: "update"; id: string; name: string; from: { quantity: number; unit: Unit }; to: { quantity: number; unit: Unit }; expectedVersion: number }
@@ -49,7 +50,7 @@ export async function findPantryByName(sub: string, rawName: string): Promise<Pa
     quantity: it.quantity as number,
     unit: it.unit as Unit,
     version: it.version as number,
-    updatedAt: it.updatedAt as number,
+    updatedAt: it.updatedAt as string,
   };
 }
 

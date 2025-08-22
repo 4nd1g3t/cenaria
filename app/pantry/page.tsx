@@ -2,7 +2,7 @@
 import PantryForm from "@/components/pantry/PantryForm";
 import PantryList from "@/components/pantry/PantryList";
 import { listPantry } from "@/lib/pantry";
-import { getIdTokenOrRedirect } from "@/lib/auth";
+import { getIdTokenOrRedirect } from "@/lib/auth-session";
 
 export const metadata = { title: "Despensa | Cenaria" };
 

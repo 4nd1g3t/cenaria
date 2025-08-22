@@ -2,10 +2,10 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { normalizeName } from "@/lib/strings";
+import { normalizeName } from "../lib/strings";
 import { findPantryByName, applyPantryUpdates, type PantryUpdate } from "../lib/pantry-db";
-import { isConvertible, toBase, fromBase, type Unit, type Day } from "@/lib/units";
-import { TABLE } from "@/lib/constants";
+import { isConvertible, toBase, fromBase, type Unit, type Day } from "../lib/units";
+import { TABLE } from "../lib/constants";
 
 const ddbDoc = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 

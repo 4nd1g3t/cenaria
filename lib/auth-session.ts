@@ -13,6 +13,13 @@ function normalizeMessage(e: unknown): string {
   return raw.toLowerCase();
 }
 
+export async function getIdTokenOrRedirect() {
+  const jar = await cookies();               // ✅ await aquí
+  const id = jar.get("idToken")?.value;      // ajusta el nombre si usas otro
+  if (!id) redirect("/signin");
+  return id;
+}
+
 /** Heurística amplia para decidir si amerita intentar refresh. */
 export function shouldAttemptRefresh(e: unknown): boolean {
   const code = extractStatus(e);
