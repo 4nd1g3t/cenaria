@@ -7,7 +7,7 @@ import { getIdTokenOrRedirect } from "@/lib/auth-session";
   params: Promise<{ id: string }>; // 👈 Next 15: params como Promise
 };*/
 
-export default async function MenuPage({ params }: PageProps) {
+export default async function MenuPage() {
   const id = "1755879607351-36s1ljldcib" 
   const idToken = await getIdTokenOrRedirect();
   return (
