@@ -58,10 +58,9 @@ export async function createItemAction(
       unit: String(formData.get('unit') || '').trim(),
       category: (() => {
         const v = (formData.get('category') as string) || '';
-        return v ? v : undefined;
+        return v ? v : "otros";
       })(),
     };
-
     if (!input.name || input.name.length < 2) {
       return { ok: false, error: { code: 'VALIDATION', message: 'Nombre inválido' } };
     }

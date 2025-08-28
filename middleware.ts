@@ -1,36 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
+// middleware.js
+import { NextResponse } from 'next/server'
 
-/**
- * Requiere cookie con el ID Token para acceder a /despensa.
- * Si falta, redirige a /signin?next=<ruta-original>
- *
- * Nota: ajusta los nombres de cookie si usas uno distinto.
- */
-const TOKEN_COOKIE_CANDIDATES = ['idToken', 'id_token', 'cenaria.idToken'];
+const TOKEN_COOKIE_CANDIDATES = ['idToken']
 
-function hasIdTokenCookie(req: NextRequest): boolean {
-  return TOKEN_COOKIE_CANDIDATES.some((name) => !!req.cookies.get(name)?.value);
+function hasIdTokenCookie(req) {
+  return TOKEN_COOKIE_CANDIDATES.some((name) => !!req.cookies.get(name)?.value)
 }
 
-export function middleware(req: NextRequest) {
-  const { pathname, search } = req.nextUrl;
+export function middleware(req) {
+  const { pathname, search } = req.nextUrl
 
-  // Solo proteger /pantry y subrutas
-  const isProtected = pathname === '/pantry' || pathname.startsWith('/pantry/');
-  if (!isProtected) return NextResponse.next();
+  // Aquí solo llega si coincide con el matcher (despensa/menu)
+  if (hasIdTokenCookie(req)) return NextResponse.next()
 
-  if (hasIdTokenCookie(req)) {
-    return NextResponse.next();
-  }
-
-  // Redirigir a /signin manteniendo la ruta original en ?next=
-  const url = req.nextUrl.clone();
-  url.pathname = '/signin';
-  const nextParam = pathname + (search || '');
-  url.searchParams.set('next', nextParam);
-  return NextResponse.redirect(url);
+  const url = req.nextUrl.clone()
+  url.pathname = '/signin'
+  url.searchParams.set('next', pathname + (search || ''))
+  return NextResponse.redirect(url)
 }
 
 export const config = {
-  matcher: ['/pantry/:path*'],
-};
+  matcher: ['/pantry/:path*', '/menu/:path*'],
+}

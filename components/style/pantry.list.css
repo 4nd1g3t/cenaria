@@ -1,0 +1,55 @@
+.card {
+  background: var(--c-surface);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.08);
+  padding: 24px;
+}
+
+.title { font-size: 1.875rem; font-weight: 600; letter-spacing: -0.01em; }
+.subtitle { opacity: .7; font-size: .9rem; }
+
+.toolbar {
+  display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; align-items: center;
+}
+.select, .input {
+  border: 1px solid var(--c-border); border-radius: 12px; padding: 10px 12px; background: #fff;
+}
+.select { width: 256px; }
+.input  { flex: 1; min-width: 260px; position: relative; }
+
+.btnCta {
+  background: var(--c-cta); color: var(--c-cta-text);
+  border: none; border-radius: 12px; padding: 10px 16px; font-weight: 600; cursor: pointer;
+}
+
+.list { margin-top: 24px; border-top: 1px solid var(--c-border); }
+.row  {
+  display: flex; align-items: center; gap: 12px; padding: 16px 0;
+  border-bottom: 1px solid var(--c-border);
+}
+.name { min-width: 10rem; font-weight: 600; }
+.qty  { width: 8rem; }
+
+.chip {
+  display: inline-block; padding: 6px 12px; border-radius: 999px;
+  color: #fff; font-weight: 600; font-size: .875rem;
+}
+.chip[data-cat="frutas"]    { background: var(--chip-frutas); }
+.chip[data-cat="lácteos"]   { background: var(--chip-lácteos); }
+.chip[data-cat="verduras"]  { background: var(--chip-verduras); }
+.chip[data-cat="carnes"]    { background: var(--chip-carnes); }
+.chip[data-cat="granos"]    { background: var(--chip-granos); }
+.chip[data-cat="especias"]  { background: var(--chip-especias); }
+.chip[data-cat="enlatados"] { background: var(--chip-enlatados); }
+.chip[data-cat="otros"]     { background: var(--chip-otros); }
+
+.actions { margin-left: auto; display: flex; gap: 8px; }
+.btnOutline {
+  border: 1px solid var(--c-border); background: #fff; border-radius: 10px; padding: 6px 10px;
+  cursor: pointer;
+}
+.btnDanger { background: #EF4444; color: #fff; border: none; border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+
+.empty {
+  text-align: center; padding: 64px; border-radius: 12px; background: var(--c-surface-alt);
+}

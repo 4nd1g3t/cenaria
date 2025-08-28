@@ -2,11 +2,8 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { useFormState, useFormStatus } from 'react-dom';
-import {
-  deleteItemAction,
-  type ActionState,
-} from '@/app/pantry/actions';
+import { useFormStatus } from 'react-dom';
+import { deleteItemAction, type ActionState } from '@/app/pantry/actions';
 import EditPantryItemDialog from './EditPantryItemDialog';
 
 type Props = {
@@ -42,7 +39,17 @@ export default function RowActions(props: Props) {
   );
 
   const initialDel: ActionState<DeleteData> = { ok: false };
-  const [delState, delAction] = useFormState(deleteItemAction, initialDel);
+
+  const deleteWrapped = React.useCallback(
+    (prev: ActionState<DeleteData>, formData: FormData) =>
+      deleteItemAction(prev as unknown as ActionState<unknown>, formData),
+    []
+  );
+
+  const [delState, delAction] = React.useActionState<
+    ActionState<DeleteData>,
+    FormData
+  >(deleteWrapped, initialDel);
 
   const handleUpdatedVersion = (v?: number) => {
     if (typeof v === 'number') setLocalVersion(v);

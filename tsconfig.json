@@ -5,7 +5,7 @@
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -17,6 +17,8 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "types": ["node", "aws-lambda"],
+    "typeRoots": ["./node_modules/@types"],
     "paths": {
       "@/*": [
         "*"
@@ -45,8 +47,5 @@
     "infra",
     "cdk.out",
     "node_modules"
-  ],
-  "types": ["node", "aws-lambda"],
-  "typeRoots": ["./node_modules/@types"],
-  "skipLibCheck": true
+  ]
 }

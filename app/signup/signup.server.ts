@@ -5,17 +5,14 @@ import { AuthActionState, API_URL } from '@/lib/constants';
 type SignUpBody = { email: string; password: string; fullName: string };
 type SignInResponse = { idToken?: string; refreshToken?: string; expiresIn?: number; tokenType?: string };
 
-export async function signUpAction(_prev: AuthActionState, formData: FormData): Promise<AuthActionState> {
+export async function signUpAction(
+  prev: AuthActionState, 
+  formData: FormData
+): Promise<AuthActionState> {
   const fullName = String(formData.get('fullName') || '').trim();
   const email = String(formData.get('email') || '').trim();
   const password = String(formData.get('password') || '');
-  const confirmPassword = String(formData.get('confirmPassword') || '');
   const next = (formData.get('next') as string) || '/pantry';
-
-  if (!fullName || fullName.length < 2) return { ok: false, error: { code: 'VALIDATION', message: 'Nombre completo inválido' } };
-  if (!email || !password) return { ok: false, error: { code: 'VALIDATION', message: 'Correo y contraseña son requeridos' } };
-  if (password !== confirmPassword) return { ok: false, error: { code: 'VALIDATION', message: 'Las contraseñas no coinciden' } };
-
   try {
     // 1) signup
     const res = await fetch(`${API_URL}/auth/signup`, {
@@ -35,23 +32,19 @@ export async function signUpAction(_prev: AuthActionState, formData: FormData): 
     const resSignIn = await fetch(`${API_URL}/auth/signin`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, password, fullName }),
+      body: JSON.stringify({ email, password }),
       cache: 'no-store',
-    });
+    }); 
     if (!resSignIn.ok) return { ok: true, next: `/signin?next=${encodeURIComponent(next)}` };
-
     const data = (await resSignIn.json()) as SignInResponse;
     if (!data.idToken) return { ok: true, next: `/signin?next=${encodeURIComponent(next)}` };
-
     const jar = await cookies();
     jar.set('idToken', data.idToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
     if (data.refreshToken) {
       jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
     }
-    // Guarda email para /auth/refresh
     jar.set('email', email, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
-
-    return { ok: true, next };
+    return { ok: true, next: next || "/pantry" };
   } catch (err) {
     const status = (err as { status?: number })?.status;
     const message = (err as { message?: string })?.message ?? 'Error de red';

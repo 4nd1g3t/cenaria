@@ -1,43 +1,40 @@
-'use server';
+'use server'
+import { type AuthActionState } from '@/lib/constants'
+import { API_URL } from '@/lib/constants'
+import { cookies } from 'next/headers'
+import { stringify } from 'querystring'
 
-import { cookies } from 'next/headers';
-import { AuthActionState , API_URL} from '@/lib/constants';
-
-export async function signInAction(_prev: AuthActionState, formData: FormData): Promise<AuthActionState> {
-  const email = String(formData.get('email') || '').trim();
-  const password = String(formData.get('password') || '');
-  const fullName = (formData.get('fullName') as string) || undefined;
-  const next = (formData.get('next') as string) || '/pantry';
-
-  if (!email || !password) return { ok: false, error: { code: 'VALIDATION', message: 'Correo y contraseña son requeridos' } };
-
+export async function signInAction(
+  prev: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
   try {
-    const res = await fetch(`${API_URL}/auth/signin`, {
+    const email = String(formData.get('email') || '')
+    const password = String(formData.get('password') || '')
+    const next = (formData.get('next') as string) || '/pantry';
+    const r = await fetch(`${API_URL}/auth/signin`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, password, fullName }),
+      body: JSON.stringify({ email, password }),
       cache: 'no-store',
-    });
-
-    if (!res.ok) {
-      const status = res.status;
-      let msg = 'Error de autenticación';
-      try { const j = (await res.json()) as { message?: string }; if (j?.message) msg = j.message; } catch {}
-      return { ok: false, error: { code: 'AUTH', message: msg, status } };
+    })
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}))
+      const msg = r.status === 401 ? 'Credenciales inválidas' : 'No se pudo iniciar sesión'
+      return { ok: false, error: { code: 'AUTH', message: msg, status: r.status } }
     }
-
-    const data = (await res.json()) as { idToken?: string; refreshToken?: string };
+    
+    const data = (await r.json()) as { idToken?: string; refreshToken?: string };
     if (!data.idToken) return { ok: false, error: { code: 'AUTH', message: 'Respuesta inválida: falta idToken' } };
 
     const jar = await cookies();
-    jar.set('idToken', data.idToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+    jar.set('idToken', data.idToken, { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
     if (data.refreshToken) {
-      jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+      jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
     }
-    // Guarda email para /auth/refresh
-    jar.set('email', email, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
+    jar.set('email', email, { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
 
-    return { ok: true, next };
+    return { ok: true, next: next || "/pantry"}
   } catch (err) {
     const status = (err as { status?: number })?.status;
     const message = (err as { message?: string })?.message ?? 'Error de red';

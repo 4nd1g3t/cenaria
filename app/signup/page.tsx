@@ -1,5 +1,8 @@
 // app/signup/page.tsx
+import '@/components/signup/signup.css'
+import LogoImage from '@/components/common/logo';
 import { SignUpForm } from '@/components/signup/signup-form';
+import Head from "next/head";
 
 type SearchParams = { next?: string };
 
@@ -12,19 +15,23 @@ export default async function SignUpPage({
   const next = sp?.next ?? '/pantry';
 
   return (
-    <main className="mx-auto max-w-md p-6">
-      <h1 className="mb-2 text-2xl font-semibold">Crear cuenta</h1>
-      <p className="mb-6 text-sm text-gray-600">
-        Completa el formulario para registrarte. Después te enviaremos a{' '}
-        <span className="font-mono">{next}</span>.
-      </p>
-      <SignUpForm next={next} />
-      <p className="mt-6 text-sm text-gray-600">
-        ¿Ya tienes cuenta?{' '}
-        <a className="underline" href={`/signin?next=${encodeURIComponent(next)}`}>
-          Inicia sesión
-        </a>
-      </p>
+    <html>
+      <Head>
+        <title>Cenaria — Crear cuenta</title>
+        <meta name="description" content="Crear cuenta en Cenaria" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
+      <body>
+        <main className="shell" role="main" aria-labelledby="signup-title">        <LogoImage />
+        <SignUpForm next={next} />
+      <div className="footer">© {new Date().getFullYear()} Cenaria</div>
     </main>
+          </body>
+    </html>
   );
 }

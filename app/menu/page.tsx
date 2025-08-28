@@ -1,25 +1,14 @@
-// app/(menu)/menu/[id]/page.tsx
-import PreparePanel  from '@/components/menu/MenuForm';
-import { API_URL } from '@/lib/constants';
-import { getIdTokenOrRedirect } from "@/lib/auth-session";
+import MenuGeneratorForm from '@/components/menu/MenuGeneratorForm'
+import { getIdTokenOrRedirect } from '@/lib/auth-session'
 
-/*type PageProps = {
-  params: Promise<{ id: string }>; // 👈 Next 15: params como Promise
-};*/
+export default async function MenuGeneratorPage() {
+  // Gate server-side: si no hay idToken, redirige a /signin
+  const idToken = await getIdTokenOrRedirect("/menu");
 
-export default async function MenuPage() {
-  const id = "1755879607351-36s1ljldcib" 
-  const idToken = await getIdTokenOrRedirect();
   return (
-    <main className="p-6">
-      {/* ...tu header + vista del menú... */}
-      <PreparePanel
-        menuId={id}
-        idToken={idToken}
-        apiUrl={API_URL}
-        onAfterConfirm={() => {
-        }}
-      />
-    </main>
-  );
+    <div className="mx-auto max-w-2xl p-6">
+      <h1 className="text-2xl font-semibold mb-4">Generar menú semanal</h1>
+      <MenuGeneratorForm />
+    </div>
+  )
 }

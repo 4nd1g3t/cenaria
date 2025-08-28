@@ -1,9 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { updateItemAction, type ActionState, type UpdatePayload } from '@/app/pantry/actions';
 import { UNITS, CATEGORIES } from '@/lib/units';
 
@@ -36,14 +35,14 @@ function SaveBtn() {
 
 export default function EditPantryItemDialog({ open, onClose, item, onUpdatedVersion }: Props) {
   const router = useRouter();
-  const [localVersion, setLocalVersion] = useState<number | undefined>(
+  const [localVersion, setLocalVersion] = React.useState<number | undefined>(
     typeof item.version === 'number' ? item.version : undefined
   );
 
   const initialState: ActionState<UpdatePayload> = { ok: false };
-  const [state, formAction] = useFormState(updateItemAction, initialState);
+  const [state, formAction] = React.useActionState<ActionState<UpdatePayload>,FormData>(updateItemAction, initialState)
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (state?.ok && state.data) {
       const newVersion = state.data.version;
       if (typeof newVersion === 'number') {

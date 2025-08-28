@@ -22,8 +22,9 @@ export async function GET() {
   }
 
   // Limpia cookies
+  //TODO: Cambier secure a true
   ['idToken', 'id_token', 'cenaria.idToken', 'refreshToken', 'email', 'userEmail'].forEach((name) => {
-    jar.set(name, '', { httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 0 });
+    jar.set(name, '', { httpOnly: true, secure: false, sameSite: 'lax', path: '/', maxAge: 0 });
   });
 
   const url = new URL('/signin', APP_URL);

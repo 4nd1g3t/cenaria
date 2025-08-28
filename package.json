@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.868.0",
     "@aws-sdk/lib-dynamodb": "^3.868.0",
+    "@next/env": "15.4.6",
     "aws-lambda": "^1.0.7",
     "next": "15.4.6",
     "react": "^18.3.1",
@@ -21,11 +22,13 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/aws-lambda": "^8.10.152",
-    "@types/node": "^20",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7",
-    "eslint": "^9",
-    "eslint-config-next": "15.4.6",
+    "@types/estree": "^1.0.8",
+    "@types/node": "20.19.11",
+    "@types/react": "^19.1.11",
+    "@types/react-dom": "^19.1.7",
+    "eslint": "^9.34.0",
+    "eslint-config-next": "^15.5.0",
+    "eslint-plugin-react": "^7.37.5",
     "typescript": "^5.9.2"
   }
 }

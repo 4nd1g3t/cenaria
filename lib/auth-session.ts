@@ -13,10 +13,10 @@ function normalizeMessage(e: unknown): string {
   return raw.toLowerCase();
 }
 
-export async function getIdTokenOrRedirect() {
-  const jar = await cookies();               // ✅ await aquí
-  const id = jar.get("idToken")?.value;      // ajusta el nombre si usas otro
-  if (!id) redirect("/signin");
+export async function getIdTokenOrRedirect(next: string) {
+  const jar = await cookies();
+  const id = jar.get("idToken")?.value;
+  if (!id) redirect(`/signin?next=${encodeURIComponent(next)}`);
   return id;
 }
 

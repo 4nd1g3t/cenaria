@@ -1,5 +1,8 @@
 // app/signin/page.tsx
-import { SignInForm } from '@/components/signin/signin-form';
+import '@/components/signin/signin.css'
+import LogoImage from "@/components/common/logo";
+import SignInForm from "@/components/signin/signin-form";
+import Head from "next/head";
 
 type SearchParams = { next?: string };
 
@@ -12,16 +15,24 @@ export default async function SignInPage({
   const next = sp?.next ?? '/pantry';
 
   return (
-    <main className="mx-auto max-w-md p-6">
-      <h1 className="mb-4 text-2xl font-semibold">Ingresar</h1>
-      <p className="mb-6 text-sm text-gray-600">
-        Autentícate para continuar. Serás redirigido a{' '}
-        <span className="font-mono">{next}</span>.
-      </p>
-      <SignInForm next={next} />
-      <p className="mt-6 text-sm text-gray-600">
-        ¿No tienes cuenta? <a className="underline" href={`/signup?next=${encodeURIComponent(next)}`}>Crear cuenta</a>
-      </p>
-    </main>
+    <html>
+      <Head>
+        <title>Cenaria — Iniciar sesión</title>
+        <meta name="description" content="Inicio de sesión en Cenaria" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
+      <body>
+        <main className="login-shell" role="main" aria-labelledby="login-title">
+          <LogoImage />
+          <SignInForm next={next} />
+          <div className="footer">© {new Date().getFullYear()} Cenaria</div>
+        </main>
+      </body>
+    </html>
   );
 }

@@ -1,64 +1,70 @@
-'use client';
+'use client'
+import './signin.css'
+import { FormEvent, useActionState, useRef, useState } from 'react'
+import { signInAction } from '@/app/signin/signin.server'
+import { type AuthActionState } from '@/lib/constants'
+import { redirect } from 'next/navigation'
 
-import * as React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import { signInAction } from '@/app/signin/signin.server';
-import { type AuthActionState } from '@/lib/constants';
 
-function SubmitBtn() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-      disabled={pending}
-    >
-      {pending ? 'Ingresando…' : 'Ingresar'}
-    </button>
-  );
-}
+export default function SignInForm({ next = '/pantry' }: { next?: string }) {
+  const [state, formAction] = useActionState<AuthActionState, FormData>(signInAction, { ok: false })
+  const [revealed, setRevealed] = useState(false)
+  const submitRef = useRef<HTMLButtonElement>(null)
 
-export function SignInForm({ next }: { next: string }) {
-  const [state, action] = useFormState<AuthActionState, FormData>(signInAction, { ok: false });
+  if (state?.ok) {
+    redirect(state.next || next);
+  }
 
-  React.useEffect(() => {
-    if (state?.ok) {
-      const dest = state.next || next || '/pantry';
-      window.location.assign(dest);
-    }
-  }, [state, next]);
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    submitRef.current?.setAttribute('disabled', 'true')
+    submitRef.current && (submitRef.current.style.opacity = '0.7')
+  }
 
   return (
-    <form action={action} className="space-y-4">
-      <input type="hidden" name="next" value={next} />
-      <label className="block">
-        <span className="mb-1 block text-sm text-gray-700">Correo</span>
-        <input
-          name="email"
-          type="email"
-          required
-          className="w-full rounded-lg border border-gray-300 px-3 py-2"
-          placeholder="tucorreo@dominio.com"
-        />
-      </label>
-      <label className="block">
-        <span className="mb-1 block text-sm text-gray-700">Contraseña</span>
-        <input
-          name="password"
-          type="password"
-          required
-          className="w-full rounded-lg border border-gray-300 px-3 py-2"
-          placeholder="••••••••"
-        />
-      </label>
+    <form method="post" action={formAction} aria-describedby="form-help" onSubmit={onSubmit}>
+      <div className="field">
+        <label htmlFor="email">Correo electrónico</label>
+        <div className="control">
+          <input id="email" name="email" type="email" inputMode="email" autoComplete="email" placeholder="tú@correo.com" required aria-required="true" />
+        </div>
+      </div>
 
-      {state?.error ? (
-        <p className="text-sm text-red-600">
-          {state.error.message || 'No se pudo iniciar sesión.'}
-        </p>
-      ) : null}
+      <div className="field">
+        <label htmlFor="password">Contraseña</label>
+        <div className="control control-pass">
+          <input id="password" name="password" type={revealed ? 'text' : 'password'} autoComplete="current-password" minLength={8} required aria-required="true" />
+          <button
+            type="button"
+            aria-controls="password"
+            aria-pressed={revealed}
+            title="Mostrar/ocultar contraseña"
+            className="reveal"
+            onClick={() => setRevealed(v => !v)}
+          >
+            👁️
+          </button>
+        </div>
+      </div>
 
-      <SubmitBtn />
+      <div className="row">
+        <label className="remember">
+          <input type="checkbox" name="remember" value="1" /> Recordarme
+        </label>
+        <a href="/forgot" rel="nofollow">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <button className="btn" type="submit" id="submit" ref={submitRef}>Iniciar sesión</button>
+
+      <div className="or">o</div>
+      <div className="alt">
+        <button className="btn btn-alt" type="button" onClick={() => (location.href = '/signup')}>Crear cuenta nueva</button>
+      </div>
+
+      <p id="form-help" className="legal">
+        Al continuar aceptas los <a href="/terms">Términos</a> y <a href="/privacy">Privacidad</a>.
+      </p>
     </form>
-  );
+
+    
+  )
 }

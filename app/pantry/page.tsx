@@ -1,4 +1,20 @@
-// app/pantry/page.tsx
+import PantryClient from "@/components/pantry/PantryList";
+
+export default function DespensaPage() {
+  return (
+    <div className="mx-auto max-w-5xl p-6">
+      <PantryClient />
+    </div>
+  );
+}
+
+
+
+
+
+
+
+/*// app/pantry/page.tsx
 import PantryForm from "@/components/pantry/PantryForm";
 import PantryList from "@/components/pantry/PantryList";
 import { listPantry } from "@/lib/pantry";
@@ -7,9 +23,9 @@ import { getIdTokenOrRedirect } from "@/lib/auth-session";
 export const metadata = { title: "Despensa | Cenaria" };
 
 async function Items() {
-  const idToken = await getIdTokenOrRedirect();
-  const { items } = await listPantry({ idToken }); // ⬅️ desestructura
-  return <PantryList items={items} />;                          // ⬅️ pasa el array
+  const idToken = await getIdTokenOrRedirect("/pantry");
+  const { items } = await listPantry({ idToken }); 
+  return <PantryList items={items} />; 
 }
 
 export default async function Page() {
@@ -21,3 +37,5 @@ export default async function Page() {
     </div>
   );
 }
+
+*/

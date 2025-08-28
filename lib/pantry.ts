@@ -8,10 +8,42 @@ import {
   TransactWriteCommand,
   TransactWriteCommandInput,
 } from "@aws-sdk/lib-dynamodb";
-import { normalizeName } from "./strings";
-import type { Unit } from "./units";
+import { normalizeName } from "@/lib/strings";
+//import type { Unit } from "./units";
+import { redirect } from "next/navigation";
 
-/** ================== Tipos ================== */
+
+
+export type Unit = "g"|"kg"|"ml"|"l"|"pieza"|"taza"|"cda"|"cdta";
+export type Category =
+  "verduras"|"frutas"|"carnes"|"lácteos"|"granos"|"especias"|"enlatados"|"otros";
+
+export interface PantryItem {
+  id: string;
+  name: string;
+  //name_normalized?: string;
+  quantity: number;
+  unit: Unit;
+  category?: Category;
+  perishable?: boolean;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  version: number;
+}
+
+export interface NewPantryItem {
+  name: string;
+  //name_normalized: string;
+  quantity: number;
+  unit: Unit;
+  category?: Category;
+  perishable?: boolean;
+  notes?: string;
+}
+
+
+/** ================== Tipos ================== 
 export interface PantryItem {
   id: string;
   name: string;
@@ -34,7 +66,7 @@ export interface NewPantryItem {
   category?: string;
   perishable?: boolean;
   notes?: string;
-}
+}*/
 
 export interface ListPantryResponse {
   items: PantryItem[];
@@ -87,6 +119,9 @@ export async function listPantry(params: {
     headers: { Authorization: `Bearer ${params.idToken}` },
     cache: "no-store",
   });
+    if (!res.ok) {
+    redirect("/signout");
+  }
   return handleJSON<ListPantryResponse>(res);
 }
 
@@ -103,6 +138,7 @@ export async function createPantryItems(params: {
     },
     body: JSON.stringify({ items: params.items }),
   });
+
   return handleJSON<{ items: PantryItem[] }>(res);
 }
 
@@ -114,7 +150,7 @@ export async function createPantryItem(params: {
   const item = params.input;
   if (!item) throw makeAppError("missing_item");
   item.unit  = typeof item.unit === "string" ? toUnit(item.unit) : item.unit;
-  item.name_normalized = normalizeName(item.name);
+  //item.name_normalized = normalizeName(item.name);
   const out = await createPantryItems({ idToken: params.idToken, items: [item] });
   const created = out.items?.[0];
   if (!created) throw makeAppError("create_failed");
@@ -259,7 +295,7 @@ export async function findPantryByName(sub: string, rawName: string): Promise<Pa
     unit: Unit;
     version: number;
     updatedAt: string;
-    category?: string;
+    category?: Category;
     perishable?: boolean;
     notes?: string;
   };
@@ -267,7 +303,7 @@ export async function findPantryByName(sub: string, rawName: string): Promise<Pa
   return {
     id: it.id,
     name: it.name,
-    name_normalized: it.name_normalized,
+    //name_normalized: it.name_normalized,
     quantity: it.quantity,
     unit: it.unit,
     version: it.version,
