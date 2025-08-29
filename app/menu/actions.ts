@@ -1,7 +1,7 @@
 'use server'
 import { redirect } from 'next/navigation'
-import { API_URL } from '@/lib/constants'
-import { getIdTokenOrRedirect } from '@/lib/auth-session'
+import { API_URL } from '@/lib/config/constants'
+import { getIdTokenOrRedirect } from '@/lib/auth/session'
 
 type GenerateMenuFields = {
   persons: number

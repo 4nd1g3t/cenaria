@@ -1,14 +1,14 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { attemptWithRefresh, extractStatus } from '@/lib/auth-session';
+import { attemptWithRefresh, extractStatus } from '@/lib/auth/session';
 import {
   PantryItem,
   createPantryItem,
   updatePantryItem,
   deletePantryItem
 } from '@/lib/pantry';
-import { MAX_PANTRY_ITEMS } from '@/lib/constants';
+import { MAX_PANTRY_ITEMS } from '@/lib/config/constants';
 
 type CreateResult = { item?: PantryItem | null } | null | undefined;
 type UpdateResult = { item?: PantryItem | null; version?: number } | null | undefined;

@@ -1,8 +1,8 @@
 'use server'
-import { type AuthActionState } from '@/lib/constants'
-import { API_URL } from '@/lib/constants'
+import { IS_PRODUCTION } from '@/lib/config/constants'
+import { API_URL } from '@/lib/config/constants'
+import { AuthActionState } from '@/lib/types'
 import { cookies } from 'next/headers'
-import { stringify } from 'querystring'
 
 export async function signInAction(
   prev: AuthActionState,
@@ -28,11 +28,17 @@ export async function signInAction(
     if (!data.idToken) return { ok: false, error: { code: 'AUTH', message: 'Respuesta inválida: falta idToken' } };
 
     const jar = await cookies();
-    jar.set('idToken', data.idToken, { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
+    jar.set('idToken', data.idToken, { 
+      httpOnly: true, 
+      secure: IS_PRODUCTION,  // ✅ Dynamic based on environment
+      sameSite: 'lax', 
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    });
     if (data.refreshToken) {
-      jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
+      jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: IS_PRODUCTION, sameSite: 'lax', path: '/' });
     }
-    jar.set('email', email, { httpOnly: true, secure: false, sameSite: 'lax', path: '/' });
+    jar.set('email', email, { httpOnly: true, secure: IS_PRODUCTION, sameSite: 'lax', path: '/' });
 
     return { ok: true, next: next || "/pantry"}
   } catch (err) {

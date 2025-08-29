@@ -1,7 +1,8 @@
 "use client";
 import "../style/pantry.form.css";
 import { useEffect, useMemo, useState } from "react";
-import type { PantryItem, NewPantryItem, Unit, Category } from "@/lib/pantry";
+import type { PantryItem, NewPantryItem, Category } from "@/lib/pantry";
+import { Unit } from "@/lib/types";
 
 
 export default function IngredientForm({ open, mode, item, onCancel, onCreate, onUpdate }: {

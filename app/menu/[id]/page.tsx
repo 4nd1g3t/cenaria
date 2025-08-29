@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import ReplaceRecipeForm from '@/components/menu/ReplaceRecipeForm';
-import { API_URL } from '@/lib/constants'
+import { API_URL } from '@/lib/config/constants'
 import MenuView from '@/components/menu/MenuView'
-import { getIdTokenOrRedirect } from '@/lib/auth-session'
+import { getIdTokenOrRedirect } from '@/lib/auth/session'
 
 type PageProps = {
   params: Promise<{ id: string }>

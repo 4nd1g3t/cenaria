@@ -1,6 +1,6 @@
 // lib/pantry.ts
-import { API_URL, MAX_PANTRY_ITEMS, GSI1, TABLE } from "./constants";
-import { UNITS } from "./units";
+import { API_URL, MAX_PANTRY_ITEMS, GSI1, TABLE } from "./config/constants";
+import { Unit } from "./types";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -12,9 +12,6 @@ import { normalizeName } from "@/lib/strings";
 //import type { Unit } from "./units";
 import { redirect } from "next/navigation";
 
-
-
-export type Unit = "g"|"kg"|"ml"|"l"|"pieza"|"taza"|"cda"|"cdta";
 export type Category =
   "verduras"|"frutas"|"carnes"|"lácteos"|"granos"|"especias"|"enlatados"|"otros";
 
@@ -97,7 +94,7 @@ async function handleJSON<T>(res: Response): Promise<T> {
 
 function toUnit(u: string): Unit {
   const v = u?.toLowerCase().trim();
-  if (UNITS.includes(v as Unit)) return v as Unit;
+  if (Unit.includes(v as Unit)) return v as Unit;
   throw makeAppError(`invalid_unit: ${u}`);
 }
 

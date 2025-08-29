@@ -2,7 +2,7 @@
 import './signin.css'
 import { FormEvent, useActionState, useRef, useState } from 'react'
 import { signInAction } from '@/app/signin/signin.server'
-import { type AuthActionState } from '@/lib/constants'
+import { type AuthActionState } from '@/lib/config/constants'
 import { redirect } from 'next/navigation'
 
 

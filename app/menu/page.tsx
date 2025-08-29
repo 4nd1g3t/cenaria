@@ -1,5 +1,5 @@
 import MenuGeneratorForm from '@/components/menu/MenuGeneratorForm'
-import { getIdTokenOrRedirect } from '@/lib/auth-session'
+import { getIdTokenOrRedirect } from '@/lib/auth/session'
 
 export default async function MenuGeneratorPage() {
   // Gate server-side: si no hay idToken, redirige a /signin

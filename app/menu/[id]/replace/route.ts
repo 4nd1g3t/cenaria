@@ -1,7 +1,7 @@
 // app/api/menu/[id]/replace/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { replaceRecipe } from "@/lib/menu";
-import { getIdTokenOrRedirect } from "@/lib/auth-session";
+import { getIdTokenOrRedirect } from "@/lib/auth/session";
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   await getIdTokenOrRedirect("/menu");

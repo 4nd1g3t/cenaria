@@ -1,4 +1,30 @@
 :root {
+  --c-text: #0F172A;
+  --c-surface: #FFFFFF;
+  --c-surface-alt: #E0F2F1;
+  --c-border: #B0D7E4;
+
+  --c-cta: #FF9800;
+  --c-cta-text: #0B1220;
+
+  /* Chips por categoría */
+  --chip-frutas:   #FF8A65;
+  --chip-lácteos:  #26C6DA;
+  --chip-verduras: #66BB6A;
+  --chip-carnes:   #EF5350;
+  --chip-granos:   #FBC02D;
+  --chip-especias: #AB47BC;
+  --chip-enlatados:#78909C;
+  --chip-otros:    #7CB342;
+}
+
+html, body {
+  color: var(--c-text);
+  background: #a8d8e5; /* fondo suave como en el mock */
+}
+
+
+:root {
   --background: #ffffff;
   --foreground: #171717;
 }

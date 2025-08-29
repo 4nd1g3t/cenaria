@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { APP_URL, API_URL } from '@/lib/constants';
+import { APP_URL, API_URL } from '@/lib/config/constants';
 
 export async function GET() {
   const jar = await cookies();

@@ -7,7 +7,7 @@ import {
   TransactWriteCommandInput,
 } from "@aws-sdk/lib-dynamodb";
 import { normalizeName } from "./strings";
-import type { Unit } from "./units";
+import type { Unit } from "./types";
 import type { PantryItem } from "./pantry";
 
 const TABLE = process.env.DDB_TABLE!;

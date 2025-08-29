@@ -1,9 +1,9 @@
 'use server'
 import { redirect } from 'next/navigation'
-import { API_URL } from '@/lib/constants'
-import { getIdTokenOrRedirect } from '@/lib/auth-session'
+import { API_URL } from '@/lib/config/constants'
+import { getIdTokenOrRedirect } from '@/lib/auth/session'
 import { revalidatePath } from 'next/cache'
-import { Day } from '@/lib/units'
+import { Day } from '@/lib/types'
 
 export async function prepareMenuAction(id: string, formData: FormData) {
   const idToken = await getIdTokenOrRedirect(`/menu/${id}`)

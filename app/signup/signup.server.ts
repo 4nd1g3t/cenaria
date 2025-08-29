@@ -1,6 +1,6 @@
 'use server';
 import { cookies } from 'next/headers';
-import { AuthActionState, API_URL } from '@/lib/constants';
+import { AuthActionState, API_URL } from '@/lib/config/constants';
 
 type SignUpBody = { email: string; password: string; fullName: string };
 type SignInResponse = { idToken?: string; refreshToken?: string; expiresIn?: number; tokenType?: string };

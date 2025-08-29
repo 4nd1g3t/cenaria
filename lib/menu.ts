@@ -1,7 +1,7 @@
 // lib/menu.ts
-import { API_URL } from "@/lib/constants";
-import { getIdTokenOrRedirect } from "./auth-session";
-import { Day } from "./units";
+import { API_URL } from "@/lib/config/constants";
+import { getIdTokenOrRedirect } from "./auth/session";
+import { Day } from "./types";
 
 async function api<T>(path: string, opts: RequestInit = {}) {
   const idToken = getIdTokenOrRedirect("/menu");

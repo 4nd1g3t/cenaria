@@ -3,7 +3,7 @@ import './signup.css'
 import { useActionState, useState, useRef } from 'react';
 import { signUpAction } from '@/app/signup/signup.server';
 import { redirect, useRouter } from 'next/navigation'
-import { API_URL, type AuthActionState } from '@/lib/constants';
+import { API_URL, type AuthActionState } from '@/lib/config/constants';
 
 type UiState = { loading: boolean; error?: string; ok?: boolean }
 

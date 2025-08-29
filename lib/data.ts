@@ -9,7 +9,7 @@ import {
   type PutCommandInput,
 } from "@aws-sdk/lib-dynamodb";
 import type { PantryItem } from "./pantry";
-import { TABLE } from "./constants";
+import { TABLE } from "./config/constants";
 
 /** **************
  *  Config DDB

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { updateItemAction, type ActionState, type UpdatePayload } from '@/app/pantry/actions';
-import { UNITS, CATEGORIES } from '@/lib/units';
+import { UNITS, CATEGORIES } from '@/lib/types';
 
 type Props = {
   open: boolean;

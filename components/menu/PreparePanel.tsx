@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { PrepareResponse } from "@/lib/menu";
 import { prepareMenu } from "@/lib/menu";
-import { Day } from "@/lib/units";
+import { Day } from "@/lib/types";
 import React from "react";
 
 export default function PreparePanel({ menuId }: { menuId: string }) {
