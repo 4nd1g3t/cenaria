@@ -1,5 +1,5 @@
 'use server'
-import { IS_PRODUCTION } from '@/lib/config/constants'
+import { COOKIE_SETTINGS, IS_PRODUCTION } from '@/lib/config/constants'
 import { API_URL } from '@/lib/config/constants'
 import { AuthActionState } from '@/lib/types'
 import { cookies } from 'next/headers'
@@ -28,17 +28,11 @@ export async function signInAction(
     if (!data.idToken) return { ok: false, error: { code: 'AUTH', message: 'Respuesta inválida: falta idToken' } };
 
     const jar = await cookies();
-    jar.set('idToken', data.idToken, { 
-      httpOnly: true, 
-      secure: IS_PRODUCTION,  // ✅ Dynamic based on environment
-      sameSite: 'lax', 
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
-    });
+    jar.set('idToken', data.idToken, COOKIE_SETTINGS);
     if (data.refreshToken) {
-      jar.set('refreshToken', data.refreshToken, { httpOnly: true, secure: IS_PRODUCTION, sameSite: 'lax', path: '/' });
+      jar.set('refreshToken', data.refreshToken, COOKIE_SETTINGS);
     }
-    jar.set('email', email, { httpOnly: true, secure: IS_PRODUCTION, sameSite: 'lax', path: '/' });
+    jar.set('email', email, COOKIE_SETTINGS);
 
     return { ok: true, next: next || "/pantry"}
   } catch (err) {

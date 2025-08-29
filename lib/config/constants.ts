@@ -1,6 +1,16 @@
 // lib/config/constants.ts
 import { z } from 'zod';
 
+function getDefaults() {
+  return {
+    NODE_ENV: 'development',
+    NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+    NEXT_PUBLIC_API_URL: 'https://api.cenaria.app',
+    DDB_TABLE: 'dev-table',
+    DDB_GSI1_NAME: 'GSI1'
+  };
+}
+
 // Environment validation schema
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -12,17 +22,12 @@ const envSchema = z.object({
 
 // Validate environment variables at startup
 function validateEnv() {
-  try {
-    return envSchema.parse(process.env);
-  } catch (error) {
-    console.error('❌ Invalid environment variables:');
-    if (error instanceof z.ZodError) {
-      error.errors.forEach((err) => {
-        console.error(`  ${err.path.join('.')}: ${err.message}`);
-      });
-    }
-    process.exit(1);
+  const result = envSchema.safeParse(process.env);
+  if (!result.success && process.env.NODE_ENV === 'production') {
+    console.error('❌ Invalid environment variables:', result.error.format());
+    throw new Error('Environment validation failed');
   }
+  return result.success ? result.data : getDefaults();
 }
 
 const env = validateEnv();

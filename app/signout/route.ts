@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { APP_URL, API_URL } from '@/lib/config/constants';
+import { APP_URL, API_URL, COOKIE_SETTINGS } from '@/lib/config/constants';
 
 export async function GET() {
   const jar = await cookies();
@@ -24,7 +24,7 @@ export async function GET() {
   // Limpia cookies
   //TODO: Cambier secure a true
   ['idToken', 'id_token', 'cenaria.idToken', 'refreshToken', 'email', 'userEmail'].forEach((name) => {
-    jar.set(name, '', { httpOnly: true, secure: false, sameSite: 'lax', path: '/', maxAge: 0 });
+    jar.set(name, '', COOKIE_SETTINGS);
   });
 
   const url = new URL('/signin', APP_URL);
