@@ -3,11 +3,11 @@
 export type Unit = 
   | "g" | "kg"           // Mass
   | "ml" | "l"           // Volume  
-  | "unit" | "pieza"     // Count
-  | "cup" | "taza"       // Volume (cooking)
-  | "tbsp" | "cda"       // Tablespoon
-  | "tsp" | "cdta"       // Teaspoon
-  | "pack" | "other";
+  | "pieza"     // Count
+  | "taza"       // Volume (cooking)
+  | "cda"       // Tablespoon
+  | "cdta"       // Teaspoon
+  | "other";
 
 export type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 

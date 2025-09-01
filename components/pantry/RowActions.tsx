@@ -22,7 +22,7 @@ function DeleteSubmitBtn() {
   return (
     <button
       type="submit"
-      className="rounded-md bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+      className="primary"
       disabled={pending}
     >
       {pending ? 'Eliminando…' : 'Confirmar'}
@@ -34,6 +34,8 @@ export default function RowActions(props: Props) {
   const router = useRouter();
 
   const [openEdit, setOpenEdit] = React.useState(false);
+  const [openDelete, setOpenDelete] = React.useState(false);
+
   const [localVersion, setLocalVersion] = React.useState<number | undefined>(
     typeof props.version === 'number' ? props.version : undefined
   );
@@ -57,67 +59,40 @@ export default function RowActions(props: Props) {
 
   React.useEffect(() => {
     if (delState?.ok) {
+      setOpenDelete(false);
       router.refresh();
     }
   }, [delState, router]);
 
+  // Cerrar modal de eliminar con ESC
+  React.useEffect(() => {
+    if (!openDelete) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenDelete(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [openDelete]);
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="rowActions">
       <button
         type="button"
-        className="rounded-md border px-2 py-1 text-sm text-gray-700 hover:bg-gray-50"
+        className="addButtonSm"
         onClick={() => setOpenEdit(true)}
+        aria-label={`Editar ${props.name}`}
       >
         Editar
       </button>
 
-      <details className="relative">
-        <summary className="list-none">
-          <button
-            type="button"
-            className="rounded-md border border-red-300 bg-red-50 px-2 py-1 text-sm text-red-700 hover:bg-red-100"
-          >
-            Eliminar
-          </button>
-        </summary>
-        <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white p-3 shadow-lg">
-          <p className="text-sm text-gray-700">
-            ¿Seguro que deseas eliminar <span className="font-medium">{props.name}</span>?
-          </p>
-          {delState?.error ? (
-            <p
-              className={`mt-2 text-xs ${
-                delState.error.code === 'CONFLICT' ? 'text-amber-600' : 'text-red-600'
-              }`}
-            >
-              {delState.error.code === 'CONFLICT'
-                ? 'El ítem cambió/ya no existe. Refresca e intenta de nuevo.'
-                : delState.error.message || 'Error eliminando.'}
-            </p>
-          ) : null}
-          <div className="mt-3 flex justify-end gap-2">
-            <button
-              type="button"
-              className="rounded-md border px-3 py-1 text-sm"
-              onClick={(e) => {
-                const details = (e.currentTarget.closest('details') as HTMLDetailsElement) || null;
-                if (details) details.open = false;
-              }}
-            >
-              Cancelar
-            </button>
+      <button
+        type="button"
+        className="dangerSoftBtn"
+        onClick={() => setOpenDelete(true)}
+        aria-label={`Eliminar ${props.name}`}
+      >
+        Eliminar
+      </button>
 
-            <form action={delAction}>
-              <input type="hidden" name="id" value={props.id} />
-              {typeof localVersion === 'number' ? (
-                <input type="hidden" name="version" value={String(localVersion)} />
-              ) : null}
-              <DeleteSubmitBtn />
-            </form>
-          </div>
-        </div>
-      </details>
-
+      {/* EDITAR */}
       <EditPantryItemDialog
         open={openEdit}
         onClose={() => setOpenEdit(false)}
@@ -131,6 +106,62 @@ export default function RowActions(props: Props) {
         }}
         onUpdatedVersion={handleUpdatedVersion}
       />
+
+      {/* ELIMINAR - Modal de confirmación */}
+      {openDelete && (
+        <div
+          className="backdrop"
+          onClick={(e) => { if (e.target === e.currentTarget) setOpenDelete(false); }}
+        >
+          <div
+            className="modal modalSm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="del-title"
+          >
+            <div className="titleBar">
+              <h2 id="del-title" className="titleDanger">Eliminar ingrediente</h2>
+              <button
+                className="iconClose"
+                aria-label="Cerrar"
+                onClick={() => setOpenDelete(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="confirmText">
+              ¿Seguro que deseas eliminar <strong>{props.name}</strong>?
+            </p>
+
+            {delState?.error ? (
+              <p className="confirmError">
+                {delState.error.code === 'CONFLICT'
+                  ? 'El ítem cambió/ya no existe. Refresca e intenta de nuevo.'
+                  : delState.error.message || 'Error eliminando.'}
+              </p>
+            ) : null}
+
+            <div className="actions">
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setOpenDelete(false)}
+              >
+                Cancelar
+              </button>
+
+              <form action={delAction}>
+                <input type="hidden" name="id" value={props.id} />
+                {typeof localVersion === 'number' ? (
+                  <input type="hidden" name="version" value={String(localVersion)} />
+                ) : null}
+                <DeleteSubmitBtn />
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

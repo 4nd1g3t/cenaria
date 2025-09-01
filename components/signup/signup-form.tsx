@@ -1,9 +1,8 @@
 'use client';
-import './signup.css'
 import { useActionState, useState, useRef } from 'react';
 import { signUpAction } from '@/app/signup/signup.server';
 import { redirect, useRouter } from 'next/navigation'
-import { API_URL, type AuthActionState } from '@/lib/config/constants';
+import { AuthActionState } from '@/lib/types';
 
 type UiState = { loading: boolean; error?: string; ok?: boolean }
 
@@ -51,40 +50,15 @@ export function SignUpForm({ next = '/pantry' }: { next?: string }) {
       return
     }
     setUi({ loading: true })
-    /*if (!result?.ok) {
-      setUi({ loading: false, error: result?.error?.message || 'No se pudo crear la cuenta.' })
-      return
-    }
-
-    /*try {
-      const r = await fetch(`${API_URL}/auth/signup`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, password, fullName }),
-        cache: 'no-store',
-      })
- 
-      if (!r.ok) {
-        const err = await r.json().catch(() => ({}))
-        const msg =
-          err?.message ||
-          (r.status === 409
-            ? 'El correo ya está registrado.'
-            : 'No se pudo crear la cuenta.')
-        setUi({ loading: false, error: msg })
-        return
-      }
-
-      setUi({ loading: false, ok: true })
-      // Tras crear la cuenta: llevar a /signin (o directo a /despensa según tu flujo)
-      router.push('/signin?created=1')
-    } catch (e) {
-      setUi({ loading: false, error: 'Error de red. Inténtalo de nuevo.' })
-    }*/
   }
 
   return (
-    <form action={formAction} onSubmit={onSubmit} aria-describedby="form-help" noValidate>
+    <form 
+      action={formAction} 
+      onSubmit={onSubmit} 
+      aria-describedby="form-help" 
+      noValidate
+    >
       <div className="field">
         <label htmlFor="fullName">Nombre completo</label>
         <div className="control">
@@ -120,7 +94,7 @@ export function SignUpForm({ next = '/pantry' }: { next?: string }) {
         </div>
       </div>
 
-      <label className="row remember" style={{ alignItems: 'flex-start', gap: 8 }}>
+      <label className="rowSign remember" style={{ alignItems: 'flex-start', gap: 8 }}>
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} style={{ accentColor: 'var(--primary)', marginTop: 3 }} />
         <span>
           Acepto los <a href="/terms">Términos</a> y la <a href="/privacy">Privacidad</a>.

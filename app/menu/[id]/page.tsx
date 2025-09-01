@@ -1,44 +1,29 @@
-import { notFound } from 'next/navigation'
-import ReplaceRecipeForm from '@/components/menu/ReplaceRecipeForm';
-import { API_URL } from '@/lib/config/constants'
+import { cookies } from 'next/headers'
 import MenuView from '@/components/menu/MenuView'
-import { getIdTokenOrRedirect } from '@/lib/auth/session'
+import { getMenu } from '@/lib/menu'
 
 type PageProps = {
   params: Promise<{ id: string }>
   searchParams?: Promise<Record<string, string | string[]>>
 }
 
-export default async function MenuDetailPage({ params }: PageProps) {
-  const { id } = await params;
-  const idToken = await getIdTokenOrRedirect(`/menu/${id}`);
+export default async function Page({ params, searchParams }: PageProps) {
+  // ✅ params es async
+  const { id } = await params
 
-  const res = await fetch(`${API_URL}/v1/menu/${id}`, {
-    headers: { Authorization: `Bearer ${idToken}` },
-    cache: 'no-store',
-  });
+  // ⚠️ Asegúrate que getMenu envíe Authorization: Bearer <ID_TOKEN> (ver nota abajo)
+  const menu = await getMenu(id)
 
-  if (res.status === 404) notFound()
-  if (!res.ok) throw new Error('No se pudo cargar el menú')
+  // ✅ cookies es async en tu setup
+  const cookieStore = await cookies()
+  const raw = cookieStore.get('menu_sim')?.value
 
-  const menu = await res.json(); // WeeklyMenu completo
-  const version: number | undefined = menu?.version ?? menu?.menu?.version; // por si tu handler envía envuelto
+  let simulation: any = null
+  if (raw) {
+    try { simulation = JSON.parse(decodeURIComponent(raw)) } catch {}
+    // ✅ borra el flash cookie con firma de 3 args
+    cookieStore.set('menu_sim', '', { path: `/menu/${id}`, maxAge: 0 })
+  }
 
-  return (
-    <div className="p-6 space-y-6">
-      <header className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Menú #{id}</h1>
-          {typeof version === 'number' && (
-            <p className="text-sm text-gray-500">Versión actual: {version}</p>
-          )}
-        </div>
-      </header>
-        <MenuView menu={menu} />
-      <section>
-        <h2 className="text-lg font-semibold mb-2">Reemplazar receta de un día</h2>
-        <ReplaceRecipeForm menuId={id} currentVersion={version} />
-      </section>
-    </div>
-  );
+  return <MenuView menu={menu} simulation={simulation} />
 }

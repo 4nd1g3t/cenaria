@@ -1,58 +1,71 @@
-// NOTA: no pongas 'use client'. Este componente no usa React en el cliente.
-// Es solo HTML/JSX que postea a una server action.
-
+"use client";
 import { generateMenuAction } from '@/app/menu/actions'
+import { useFormStatus } from 'react-dom'
+import '../style/menu.css' 
+
+function LoadingOverlay() {
+  const { pending } = useFormStatus()
+  if (!pending) return null
+  return (
+    <div className="loadingOverlay">
+      <div className="loadingSpinner"></div>
+      <p>Generando menú…</p>
+    </div>
+  )
+}
 
 export default function MenuGeneratorForm() {
   return (
-    <form action={generateMenuAction} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Personas</label>
+    <form action={generateMenuAction} className="form formNarrow">
+      <div className="field">
+        <label className="label">Personas</label>
         <input
           name="persons"
           type="number"
           min={1}
           max={12}
           defaultValue={2}
-          className="w-28 rounded border px-2 py-1"
+          className="input inlineNumber"
           required
         />
       </div>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Días</legend>
-        <label className="flex items-center gap-2">
-          <input type="radio" name="daysMode" value="full_week" defaultChecked /> Semana completa
+      <fieldset className="field">
+        <legend className="legend">Días</legend>
+        <label className="choiceRow">
+          <input type="radio" name="daysMode" value="weekdays" defaultChecked />
+          <span>Lunes a viernes</span>
         </label>
-        <label className="flex items-center gap-2">
-          <input type="radio" name="daysMode" value="weekdays" /> Lunes a viernes
+        <label className="choiceRow">
+          <input type="radio" name="daysMode" value="full_week" />
+          <span>Semana completa</span>
         </label>
       </fieldset>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Duración máx. (minutos) — opcional</label>
+      <div className="field">
+        <label className="label">Duración máx. (minutos) — opcional</label>
         <input
           name="maxDurationMin"
           type="number"
           min={10}
           max={180}
           placeholder="30"
-          className="w-32 rounded border px-2 py-1"
+          className="input inlineNumber"
         />
       </div>
 
-      <label className="flex items-center gap-2">
-        <input type="checkbox" name="usePantry" defaultChecked /> Usar despensa
+      <label className="choiceRow">
+        <input type="checkbox" name="usePantry" defaultChecked />
+        <span>Usar despensa</span>
       </label>
 
-      <div className="pt-2">
-        <button
-          type="submit"
-          className="rounded bg-black text-white px-4 py-2"
-        >
-          Generar menú
-        </button>
+      <div className="actions submitRow">
+        <button type="submit" className="primary">Generar menú</button>
       </div>
+
+      {/* Overlay bloqueante */}
+      <LoadingOverlay />
     </form>
   )
 }
+

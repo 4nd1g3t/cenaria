@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { updateItemAction, type ActionState, type UpdatePayload } from '@/app/pantry/actions';
-import { UNITS, CATEGORIES } from '@/lib/types';
+import { CATEGORIES, UNITS } from '@/lib/units';
 
 type Props = {
   open: boolean;
@@ -23,11 +23,7 @@ type Props = {
 function SaveBtn() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-      disabled={pending}
-    >
+    <button type="submit" className="primary" disabled={pending}>
       {pending ? 'Guardando cambios…' : 'Guardar'}
     </button>
   );
@@ -38,9 +34,35 @@ export default function EditPantryItemDialog({ open, onClose, item, onUpdatedVer
   const [localVersion, setLocalVersion] = React.useState<number | undefined>(
     typeof item.version === 'number' ? item.version : undefined
   );
+  const nameInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // cantidad con stepper ±
+  const [qty, setQty] = React.useState<number>(item.quantity ?? 0);
+  React.useEffect(() => {
+    if (open) setQty(item.quantity ?? 0);
+  }, [open, item.quantity]);
+
+  const dec = () => setQty((v) => Math.max(0, (Number.isFinite(v) ? v : 0) - 1));
+  const inc = () => setQty((v) => Math.max(0, (Number.isFinite(v) ? v : 0) + 1));
+  const onQtyInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const n = Number(e.target.value);
+    setQty(Number.isFinite(n) ? Math.max(0, n) : 0);
+  };
 
   const initialState: ActionState<UpdatePayload> = { ok: false };
-  const [state, formAction] = React.useActionState<ActionState<UpdatePayload>,FormData>(updateItemAction, initialState)
+  const [state, formAction] = React.useActionState<ActionState<UpdatePayload>, FormData>(
+    updateItemAction,
+    initialState
+  );
+
+  // Cierre con ESC y focus al abrir
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    nameInputRef.current?.focus();
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
 
   React.useEffect(() => {
     if (state?.ok && state.data) {
@@ -61,98 +83,114 @@ export default function EditPantryItemDialog({ open, onClose, item, onUpdatedVer
   const isConflict = state?.error?.code === 'CONFLICT';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={() => onClose()}
-        aria-hidden="true"
-      />
-
-      {/* Modal */}
+    <div
+      className="backdrop"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
+        aria-labelledby="edit-pantry-title"
+        className="modal"
       >
-        <h2 className="text-lg font-semibold mb-4">Editar ítem</h2>
+        <div className="titleBar">
+          <h2 id="edit-pantry-title">Editar ingrediente</h2>
+          <button className="iconClose" aria-label="Cerrar" onClick={onClose}>×</button>
+        </div>
 
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} className="form">
           <input type="hidden" name="id" value={item.id} />
           {typeof localVersion === 'number' ? (
             <input type="hidden" name="version" value={String(localVersion)} />
           ) : null}
 
-          <div className="grid grid-cols-2 gap-4">
-            <label className="col-span-2">
-              <span className="block text-sm text-gray-600">Nombre</span>
+          <div className="grid">
+            <label className="full">
+              <span className="label">Nombre</span>
               <input
+                ref={nameInputRef}
                 name="name"
                 required
                 minLength={2}
                 defaultValue={item.name}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="input"
+                placeholder="ej. Arroz"
               />
             </label>
 
             <label>
-              <span className="block text-sm text-gray-600">Cantidad</span>
-              <input
-                name="quantity"
-                type="number"
-                step="any"
-                min={0}
-                defaultValue={item.quantity}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
-              />
+              <span className="label">Cantidad</span>
+              <div className="qtyGroup">
+                <button
+                  type="button"
+                  className="stepperBtn stepperBtnMinus"
+                  onClick={dec}
+                  aria-label="Disminuir cantidad"
+                >
+                  −
+                </button>
+
+                <input
+                  name="quantity"
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  min={0}
+                  value={qty}
+                  onChange={onQtyInput}
+                  className="input stepperInput"
+                  placeholder="0"
+                />
+
+                <button
+                  type="button"
+                  className="stepperBtn stepperBtnPlus"
+                  onClick={inc}
+                  aria-label="Aumentar cantidad"
+                >
+                  +
+                </button>
+              </div>
             </label>
 
             <label>
-              <span className="block text-sm text-gray-600">Unidad</span>
+              <span className="label">Unidad</span>
               <select
                 name="unit"
                 defaultValue={item.unit}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="input"
               >
                 {UNITS.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
+                  <option key={u} value={u}>{u}</option>
                 ))}
               </select>
             </label>
 
-            <label className="col-span-2">
-              <span className="block text-sm text-gray-600">Categoría (opcional)</span>
+            <label className="full">
+              <span className="label">Categoría (opcional)</span>
               <select
                 name="category"
                 defaultValue={item.category || ''}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="input"
               >
                 <option value="">(sin categoría)</option>
                 {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
             </label>
           </div>
 
           {hasError ? (
-            <p className={`text-sm ${isConflict ? 'text-amber-600' : 'text-red-600'}`}>
+            <p className="confirmError">
               {isConflict
                 ? 'El ítem cambió en el servidor. Refresca la lista e intenta de nuevo.'
                 : state?.error?.message || 'Ocurrió un error.'}
             </p>
           ) : null}
 
-          <div className="mt-2 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              className="rounded-lg border px-4 py-2 text-gray-700"
-              onClick={onClose}
-            >
+          <div className="actions">
+            <button type="button" className="ghost" onClick={onClose}>
               Cancelar
             </button>
             <SaveBtn />

@@ -23,7 +23,7 @@ export async function GET() {
 
   // Limpia cookies
   //TODO: Cambier secure a true
-  ['idToken', 'id_token', 'cenaria.idToken', 'refreshToken', 'email', 'userEmail'].forEach((name) => {
+  ['idToken', 'refreshToken', 'email'].forEach((name) => {
     jar.set(name, '', COOKIE_SETTINGS);
   });
 

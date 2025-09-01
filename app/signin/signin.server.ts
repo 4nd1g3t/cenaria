@@ -1,5 +1,5 @@
 'use server'
-import { COOKIE_SETTINGS, IS_PRODUCTION } from '@/lib/config/constants'
+import { COOKIE_SETTINGS } from '@/lib/config/constants'
 import { API_URL } from '@/lib/config/constants'
 import { AuthActionState } from '@/lib/types'
 import { cookies } from 'next/headers'

@@ -1,6 +1,6 @@
 // lib/pantry.ts
 import { API_URL, MAX_PANTRY_ITEMS, GSI1, TABLE } from "./config/constants";
-import { Unit } from "./types";
+import { Category, NewPantryItem, PantryItem, Unit } from "./types";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -11,59 +11,8 @@ import {
 import { normalizeName } from "@/lib/strings";
 //import type { Unit } from "./units";
 import { redirect } from "next/navigation";
+import { UNITS } from "./units";
 
-export type Category =
-  "verduras"|"frutas"|"carnes"|"lácteos"|"granos"|"especias"|"enlatados"|"otros";
-
-export interface PantryItem {
-  id: string;
-  name: string;
-  //name_normalized?: string;
-  quantity: number;
-  unit: Unit;
-  category?: Category;
-  perishable?: boolean;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  version: number;
-}
-
-export interface NewPantryItem {
-  name: string;
-  //name_normalized: string;
-  quantity: number;
-  unit: Unit;
-  category?: Category;
-  perishable?: boolean;
-  notes?: string;
-}
-
-
-/** ================== Tipos ================== 
-export interface PantryItem {
-  id: string;
-  name: string;
-  name_normalized: string;
-  quantity: number;
-  unit: Unit | string;
-  version: number;
-  category?: string;
-  perishable?: boolean;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface NewPantryItem {
-  name: string;
-  name_normalized?: string;
-  quantity: number;
-  unit: Unit | string;
-  category?: string;
-  perishable?: boolean;
-  notes?: string;
-}*/
 
 export interface ListPantryResponse {
   items: PantryItem[];
@@ -94,7 +43,7 @@ async function handleJSON<T>(res: Response): Promise<T> {
 
 function toUnit(u: string): Unit {
   const v = u?.toLowerCase().trim();
-  if (Unit.includes(v as Unit)) return v as Unit;
+  if (UNITS.includes(v as Unit)) return v as Unit;
   throw makeAppError(`invalid_unit: ${u}`);
 }
 

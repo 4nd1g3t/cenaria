@@ -1,0 +1,432 @@
+/* =========================================================
+   1) Tokens / Design System (paleta, radios, sombras)
+   ========================================================= */
+:root{
+  --brand-50:  #eef7f0;
+  --brand-100: #dff3e3;
+  --brand-200: #cfe3d2;
+  --brand-600: #3c8a4f;
+  --brand-700: #2e6b3b;
+
+  --surface:#ffffff;
+  --surface-2:#f6f7f8;
+  --text:#15171a;
+  --muted:#6b7280;
+  --border:#e6e8ea;
+
+  --radius:12px;
+  --shadow:0 1px 2px rgba(0,0,0,.05);
+  --shadow-lg:0 10px 40px rgba(0,0,0,.18);
+}
+
+/* =========================================================
+   2) Componentes base y utilidades (botones, inputs, layout de form)
+   ========================================================= */
+
+/* Botón primario global para menú */
+.primary{
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid var(--brand-200);
+  background: var(--brand-600);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition: background-color .15s ease, opacity .15s ease, transform .05s ease;
+}
+.primary:hover{ background: var(--brand-700); }
+.primary:disabled{ opacity:.65; cursor:not-allowed; }
+
+/* Variante histórica específica del módulo (si se usa en otras vistas) */
+.btnPrimary{
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid var(--brand-200);
+  background: var(--brand-600);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .15s ease, opacity .15s ease, transform .05s ease;
+}
+.btnPrimary:hover{ background: var(--brand-700); }
+.btnPrimary:active{ transform: translateY(1px); }
+.btnPrimary:disabled,
+.btnPrimary[aria-disabled="true"]{
+  opacity:.65; cursor: not-allowed;
+}
+
+/* Formularios */
+.form{
+  display:flex;
+  flex-direction:column;
+  gap:16px; /* space-y-4 */
+}
+.formNarrow{ max-width:560px; }
+.formActions{ padding-top:8px; }      /* pt-2 */
+.submitRow{ margin-top:8px; }         /* separación superior botón */
+
+/* Campos */
+.field{ display:grid; row-gap:6px; }
+.fieldset{
+  display:flex;
+  flex-direction:column;
+  gap:8px; /* space-y-2 */
+}
+
+/* Etiquetas */
+.label,
+.labelBlock{
+  display:block;
+  font-size:.875rem;   /* text-sm */
+  font-weight:500;     /* font-medium */
+  margin-bottom:4px;   /* mb-1 */
+  color:var(--text);
+}
+
+/* Inputs */
+.input,
+.inputSm,
+.inputMd{
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:6px 8px;     /* px-2 py-1 */
+  font:inherit;
+  background:#fff;
+}
+.input{ width:100%; }
+.inputSm{ width:7rem; }       /* w-28 */
+.inputMd{ width:8rem; }       /* w-32 */
+.input:focus,
+.inputSm:focus,
+.inputMd:focus{
+  outline:2px solid var(--brand-100);
+  border-color:var(--brand-200);
+}
+/* Variante compacta numérica */
+.inlineNumber{
+  width:132px;     /* ~ w-32 */
+  text-align:left;
+}
+
+/* Leyendas y filas de opciones */
+.legend{
+  font-size:.95rem;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:4px;
+}
+.radioRow,
+.checkboxRow,
+.choiceRow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:.95rem;
+  color:var(--text);
+}
+.choiceRow{ margin:6px 0; }
+
+/* Grupo de acciones del formulario */
+.actions{
+  display:flex;
+  justify-content:flex-start; /* cambia a flex-end si lo prefieres */
+  gap:10px;
+  padding-top:8px;
+}
+
+/* =========================================================
+   3) Layout de la página / encabezado
+   ========================================================= */
+.menuContainer{
+  max-width:64rem; /* ~1024px */
+  margin-inline:auto;
+  padding:24px;
+  display:grid;
+  grid-auto-rows:min-content;
+  row-gap:24px;
+  color:var(--text);
+}
+
+.menuHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.menuHeaderLeft{ display:grid; row-gap:4px; }
+.menuTitle{
+  margin:0;
+  font-size:1.5rem;
+  font-weight:600;
+  line-height:1.2;
+}
+.menuSubtitle{
+  margin:0;
+  font-size:.9rem;
+  color:var(--muted);
+}
+
+/* =========================================================
+   4) Grid de días / tarjetas del calendario
+   ========================================================= */
+.menuDaysGrid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+}
+@media (min-width:768px){
+  .menuDaysGrid{ grid-template-columns:1fr; }
+}
+
+.menuDayCard{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  transition:background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.menuDayCard:hover{
+  background:var(--brand-50);
+  box-shadow:0 4px 14px rgba(46,107,59,.14);
+  border-color:var(--brand-200);
+}
+.menuDayCard:focus-within{
+  outline:2px solid var(--brand-100);
+  outline-offset:2px;
+  background:var(--brand-50);
+}
+.menuDayTitle{
+  margin:0 0 6px 0;
+  font-weight:600;
+}
+
+/* =========================================================
+   5) Contenido de receta dentro de la tarjeta
+   ========================================================= */
+.menuRecipe{
+  display:grid;
+  row-gap:6px;
+  margin-top:6px;
+}
+.menuRecipeTitle{ font-weight:600; }
+.menuRecipeMeta{
+  font-size:.9rem;
+  color:#4b5563;
+}
+.menuIngList{
+  list-style:disc;
+  margin:0;
+  padding-left:1.25rem;
+  display:grid;
+  row-gap:4px;
+}
+.menuIngItem{ font-size:.95rem; }
+.menuIngName{ font-weight:600; }
+.menuEmptyDay{
+  margin-top:6px;
+  font-size:.9rem;
+  color:var(--muted);
+}
+
+/* =========================================================
+   6) Sección “Preparar”
+   ========================================================= */
+.menuPrepare{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+}
+.menuSectionTitle{
+  margin:0 0 8px 0;
+  font-weight:600;
+}
+.menuPrepareForm{
+  display:grid;
+  row-gap:12px;
+}
+.menuOptionRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 14px;
+  align-items:center;
+}
+.menuOption{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:.95rem;
+}
+.menuCheckboxGrid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 14px;
+}
+.menuCheckbox{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:.9rem;
+}
+.menuDryRun{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:.95rem;
+}
+.menuSubmitRow{ margin-top:4px; }
+
+/* =========================================================
+   7) Motion / preferencias de usuario
+   ========================================================= */
+@media (prefers-reduced-motion: reduce){
+  .menuDayCard{ transition:none; }
+  .btnPrimary{ transition:none; }
+}
+
+/* ===== Overlay de carga ===== */
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-size: 1rem;
+  color: var(--text);
+  backdrop-filter: blur(2px);
+}
+
+.loadingSpinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--brand-200);
+  border-top-color: var(--brand-600);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Acciones por día ===== */
+.menuDayHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+
+.dayActions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.inlineForm{ display:inline; }
+
+/* Botón fantasma suave (secundario) */
+.btnGhost{
+  padding:8px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#fff;
+  cursor:pointer;
+  font-weight:600;
+  font-size:.9rem;
+}
+.btnGhost:hover{ background:#fafafa; }
+
+/* ===== Modal genérico (reutilizable) ===== */
+.modalBackdrop{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.32);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+  padding:16px;
+}
+
+.modalCard{
+  width: 640px;
+  max-width: 96vw;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  animation: pop .12s ease-out;
+}
+.modalMd{ width:640px; }
+
+@keyframes pop{
+  from{ transform: translateY(4px) scale(.98); opacity: .9; }
+  to{ transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.modalTitleBar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom: 8px;
+}
+.modalTitleBar h4{
+  font-size: 1.05rem;
+  margin:0;
+}
+
+.iconClose{
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+.iconClose:hover{ background:#fafafa; }
+
+.modalBody{
+  display:grid;
+  gap:10px;
+  margin-top:4px;
+}
+
+.modalActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:12px;
+}
+
+/* ===== Bloques de simulación ===== */
+.simBlock{ background: var(--surface-2); border-radius: 12px; padding:12px; }
+.simHeading{ margin:0 0 8px 0; font-weight:600; font-size:.95rem; }
+.simHeading.ok{ color: var(--brand-700); }
+.simHeading.warn{ color: #9b2222; }
+
+.simList{ list-style:none; margin:0; padding:0; display:grid; gap:6px; }
+.simItem{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 10px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+.simItem.shortage{ background:#ffecec; border-color:#f1c5c5; }
+.simEmpty{ margin: 2px 0 0; color: var(--muted); }
+
+.ingName{ font-weight:600; }
+.ingQty{ color:#374151; font-size:.95rem; }

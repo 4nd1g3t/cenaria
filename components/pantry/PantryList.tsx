@@ -1,127 +1,155 @@
 "use client";
-import "../style/pantry.list.css";
-import { useMemo, useState } from "react";
-import IngredientForm from "./PantryForm";
-import type { PantryItem, NewPantryItem, Category } from "@/lib/pantry";
 
-const INITIAL_ITEMS: PantryItem[] = [
-  { id: "1", name: "Arroz", quantity: 2, unit: "kg", category: "granos", version: 1},//, createdAt: Date.now(), updatedAt: Date.now() },
-  { id: "2", name: "Leche", quantity: 1, unit: "l", category: "lácteos", version: 1},//, createdAt: Date.now(), updatedAt: Date.now() },
-  { id: "3", name: "Manzanas", quantity: 5, unit: "pieza", category: "frutas", version: 1},//, createdAt: Date.now(), updatedAt: Date.now() },
-  { id: "4", name: "Pan integral", quantity: 1, unit: "pieza", category: "otros", version: 1},//, createdAt: Date.now(), updatedAt: Date.now() },
-  { id: "5", name: "Papas", quantity: 800, unit: "g", category: "verduras", version: 1},//, createdAt: Date.now(), updatedAt: Date.now() },
-  { id: "6", name: "Pollo", quantity: 500, unit: "g", category: "carnes", version: 1},//, createdAt: Date.now(), updatedAt: Date.now() },
-];
-const CATEGORIES: Category[] = ["verduras","frutas","carnes","lácteos","granos","especias","enlatados","otros"];
+import { useMemo, useState, useCallback } from "react";
+import RowActions from "./RowActions";
+import { PantryItem } from "@/lib/types";
 
-export default function PantryClient() {
-  const [items, setItems] = useState<PantryItem[]>(INITIAL_ITEMS);
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<"" | Category>("");
-  const [openForm, setOpenForm] = useState<null | {mode:"create"} | {mode:"edit", item:PantryItem}>(null);
+/** Normaliza la categoría para mapear a las clases .cat-* del CSS */
+function getCategoryClass(cat?: string | null) {
+  const raw = (cat || "otros")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // quita acentos
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return items.filter(i => (!category || i.category === category) && (!q || i.name.toLowerCase().includes(q)));
-  }, [items, query, category]);
+  const allowed = new Set([
+    "verduras",
+    "frutas",
+    "carnes",
+    "lacteos",
+    "granos",
+    "especias",
+    "enlatados",
+    "otros",
+  ]);
 
-  function handleCreate(payload: NewPantryItem) { /* ...igual... */ }
-  function handleUpdate(id: string, payload: NewPantryItem) { /* ...igual... */ }
-  function handleDelete(id: string) { setItems(p => p.filter(i => i.id !== id)); }
+  const key = allowed.has(raw) ? raw : "otros";
+  return `categoryPill cat-${key}`;
+}
+
+type SortKey = "name" | "category";
+type SortDir = "asc" | "desc";
+
+export default function PantryList({ items }: { items: PantryItem[] }) {
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir } | null>(null);
+
+  const toggleSort = useCallback((key: SortKey) => {
+    setSort((prev) =>
+      prev?.key === key ? { key, dir: prev.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }
+    );
+  }, []);
+
+  const sorted = useMemo(() => {
+    if (!sort) return items;
+    const copy = [...items];
+
+    const normalize = (s: string) =>
+      (s || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    copy.sort((a, b) => {
+      const aKey =
+        sort.key === "name"
+          ? normalize(a.name)
+          : normalize((a.category as string | undefined) || "otros");
+      const bKey =
+        sort.key === "name"
+          ? normalize(b.name)
+          : normalize((b.category as string | undefined) || "otros");
+
+      const cmp = aKey.localeCompare(bKey, "es", { sensitivity: "base" });
+      if (cmp !== 0) return sort.dir === "asc" ? cmp : -cmp;
+
+      // Desempate por nombre
+      const cmpName = normalize(a.name).localeCompare(normalize(b.name), "es", {
+        sensitivity: "base",
+      });
+      return sort.dir === "asc" ? cmpName : -cmpName;
+    });
+
+    return copy;
+  }, [items, sort]);
+
+  if (!items?.length) {
+    return (
+      <div className="empty">
+        <p>Sin elementos aún. Agrega tu primer ingrediente.</p>
+      </div>
+    );
+  }
+
+  const nameIcon = sort?.key === "name" ? (sort.dir === "asc" ? "▲" : "▼") : "↕";
+  const catIcon  = sort?.key === "category" ? (sort.dir === "asc" ? "▲" : "▼") : "↕";
+
+  const ariaSortFor = (key: SortKey) =>
+    sort?.key === key ? (sort.dir === "asc" ? "ascending" : "descending") : "none";
 
   return (
-    <div className="card">
-      <div>
-        <h1 className="title">Despensa</h1>
-        <p className="subtitle">Gestiona tus ingredientes y cantidades.</p>
-      </div>
+    <div className="tableWrap">
+      <table className="table">
+        <caption className="srOnly">Lista de ingredientes de la despensa</caption>
+        <thead className="thead">
+          <tr>
+            <th aria-sort={ariaSortFor("name")}>
+              <button
+                type="button"
+                className={`thButton ${sort?.key === "name" ? "thActive" : ""}`}
+                onClick={() => toggleSort("name")}
+                aria-label="Ordenar por nombre"
+              >
+                Nombre <span className="sortIcon" aria-hidden="true">{nameIcon}</span>
+              </button>
+            </th>
 
-      <div className="toolbar">
-        <select className="select" value={category} onChange={(e)=>setCategory(e.target.value as any)}>
-          <option value="">Todas las categorías</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+            <th>Cantidad</th>
+            <th>Unidad</th>
 
-        <input className="input" placeholder="Buscar ingredientes…" value={query} onChange={(e)=>setQuery(e.target.value)} />
-        <button className="btnCta" onClick={() => setOpenForm({ mode: "create" })}>Agregar</button>
-      </div>
+            <th aria-sort={ariaSortFor("category")}>
+              <button
+                type="button"
+                className={`thButton ${sort?.key === "category" ? "thActive" : ""}`}
+                onClick={() => toggleSort("category")}
+                aria-label="Ordenar por categoría"
+              >
+                Categoría <span className="sortIcon" aria-hidden="true">{catIcon}</span>
+              </button>
+            </th>
 
-      <div className="list">
-        {filtered.length === 0 ? (
-          <div className="empty">
-            <p className="text-lg font-medium">Aún no hay ingredientes</p>
-            <p className="text-sm opacity-70">Haz clic en “Agregar” para registrar el primero.</p>
-          </div>
-        ) : filtered.map(i => (
-          <div key={i.id} className="row">
-            <div className="name">{i.name}</div>
-            <div className="qty">{i.quantity} {i.unit}</div>
-            <div className="flex-1">
-              <span className="chip" data-cat={i.category}>{i.category}</span>
-            </div>
-            <div className="actions">
-              <button className="btnOutline" onClick={()=>setOpenForm({ mode:"edit", item:i })}>Editar</button>
-              <button className="btnDanger" onClick={()=>handleDelete(i.id)}>Eliminar</button>
-            </div>
-          </div>
-        ))}
-      </div>
+            <th aria-label="Acciones" />
+          </tr>
+        </thead>
 
-      {openForm && (
-        <IngredientForm
-          open
-          mode={openForm.mode}
-          item={openForm.mode === "edit" ? openForm.item : undefined}
-          onCancel={() => setOpenForm(null)}
-          onCreate={(p)=>handleCreate(p)}
-          onUpdate={(id,p)=>handleUpdate(id,p)}
-        />
-      )}
+        <tbody>
+          {sorted.map((it) => (
+            <tr key={it.id} className="row">
+              <td className="cell" data-label="Nombre">
+                {it.name}
+              </td>
+              <td className="cell" data-label="Cantidad">
+                {it.quantity ?? ""}
+              </td>
+              <td className="cell" data-label="Unidad">
+                {it.unit ?? ""}
+              </td>
+              <td className="cell" data-label="Categoría">
+                {it.category ? (
+                  <span className={getCategoryClass(it.category)}>{it.category}</span>
+                ) : (
+                  <span className={getCategoryClass(undefined)}>otros</span>
+                )}
+              </td>
+              <td className="cell actionsCell" data-label="">
+                <RowActions
+                  id={it.id}
+                  version={it.version}
+                  name={it.name}
+                  quantity={it.quantity}
+                  unit={it.unit}
+                  category={it.category}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-/*
-// src/components/pantry/PantryList.tsx
-import RowActions from "./RowActions";
-import type { PantryItem } from "@/lib/pantry";
-
-export default function PantryList({ items }: { items: PantryItem[] }) {
-  if (!items?.length) return <p className="text-sm text-gray-500">Sin elementos aún.</p>;
-  return (
-    <table className="w-full border-separate border-spacing-y-2">
-      <thead>
-        <tr className="text-left text-sm text-gray-600">
-          <th className="px-2">Nombre</th>
-          <th className="px-2">Cantidad</th>
-          <th className="px-2">Unidad</th>
-          <th className="px-2">Categoria</th>
-          <th className="px-2"/>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((it) => (
-          <tr key={it.id} className="bg-white shadow-sm">
-            <td className="px-2 py-2">{it.name}</td>
-            <td className="px-2 py-2">{it.quantity ?? ""}</td>
-            <td className="px-2 py-2">{it.unit ?? ""}</td>
-            <td className="px-2 py-2">{it.category ?? ""}</td>
-            <td className="px-2 py-2">
-              <RowActions id={it.id} version={it.version} name={it.name} quantity={it.quantity} unit={it.unit} category={it.category} />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-  */

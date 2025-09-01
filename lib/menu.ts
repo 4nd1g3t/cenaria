@@ -4,7 +4,7 @@ import { getIdTokenOrRedirect } from "./auth/session";
 import { Day } from "./types";
 
 async function api<T>(path: string, opts: RequestInit = {}) {
-  const idToken = getIdTokenOrRedirect("/menu");
+  const idToken = await getIdTokenOrRedirect("/menu");
   const r = await fetch(`${API_URL}${path}`, {
     ...opts,
     headers: {

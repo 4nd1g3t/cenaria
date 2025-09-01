@@ -1,5 +1,5 @@
 // app/signin/page.tsx
-import '@/components/signin/signin.css'
+import '@/components/style/login.css'
 import LogoImage from "@/components/common/logo";
 import SignInForm from "@/components/signin/signin-form";
 import { Metadata } from "next";
@@ -20,10 +20,18 @@ export default async function SignInPage({
   const next = sp?.next ?? '/pantry';
 
   return (
-    <main className="login-shell" role="main" aria-labelledby="login-title">
-      <LogoImage />
-      <SignInForm next={next} />
-      <div className="footer">© {new Date().getFullYear()} Cenaria</div>
-    </main>
+    <>
+      {/* Animated background elements */}
+      <div className="bg-gradient" aria-hidden="true"></div>
+      <div className="orb orb1" aria-hidden="true"></div>
+      <div className="orb orb2" aria-hidden="true"></div>
+      <div className="orb orb3" aria-hidden="true"></div>
+      
+      <main className="shell" role="main" aria-labelledby="login-title">
+        <LogoImage />
+        <SignInForm next={next} />
+        <div className="footer">© {new Date().getFullYear()} Cenaria</div>
+      </main>
+    </>
   );
 }

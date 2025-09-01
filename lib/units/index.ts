@@ -48,14 +48,7 @@ export const UNIT_DEFINITIONS: Record<Unit, UnitDefinition> = {
     baseUnit: "ml",
     conversionFactor: 1000,
     displayName: { en: "liters", es: "litros" },
-    abbreviation: { en: "l", es: "l" },
-  },
-  cup: {
-    category: "volume",
-    baseUnit: "ml",
-    conversionFactor: 240, // US cup
-    displayName: { en: "cups", es: "tazas" },
-    abbreviation: { en: "cup", es: "taza" },
+    abbreviation: { en: "L", es: "L" },
   },
   taza: {
     category: "volume",
@@ -64,26 +57,12 @@ export const UNIT_DEFINITIONS: Record<Unit, UnitDefinition> = {
     displayName: { en: "cups", es: "tazas" },
     abbreviation: { en: "cup", es: "taza" },
   },
-  tbsp: {
-    category: "volume",
-    baseUnit: "ml",
-    conversionFactor: 15,
-    displayName: { en: "tablespoons", es: "cucharadas" },
-    abbreviation: { en: "tbsp", es: "cda" },
-  },
   cda: {
     category: "volume",
     baseUnit: "ml",
     conversionFactor: 15,
     displayName: { en: "tablespoons", es: "cucharadas" },
     abbreviation: { en: "tbsp", es: "cda" },
-  },
-  tsp: {
-    category: "volume",
-    baseUnit: "ml",
-    conversionFactor: 5,
-    displayName: { en: "teaspoons", es: "cucharaditas" },
-    abbreviation: { en: "tsp", es: "cdta" },
   },
   cdta: {
     category: "volume",
@@ -94,26 +73,12 @@ export const UNIT_DEFINITIONS: Record<Unit, UnitDefinition> = {
   },
 
   // Count units
-  unit: {
-    category: "count",
-    baseUnit: "unit",
-    conversionFactor: 1,
-    displayName: { en: "units", es: "unidades" },
-    abbreviation: { en: "unit", es: "pieza" },
-  },
   pieza: {
     category: "count",
-    baseUnit: "unit",
+    baseUnit: "pieza",
     conversionFactor: 1,
-    displayName: { en: "pieces", es: "piezas" },
+    displayName: { en: "piece", es: "pieza" },
     abbreviation: { en: "pc", es: "pieza" },
-  },
-  pack: {
-    category: "count",
-    baseUnit: "unit",
-    conversionFactor: 1,
-    displayName: { en: "packs", es: "paquetes" },
-    abbreviation: { en: "pack", es: "paq" },
   },
 
   // Other

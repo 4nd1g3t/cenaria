@@ -1,9 +1,25 @@
-// No 'use client' aquí. Este componente no hace llamadas; solo renderiza y
-// dispara server actions vía <form action={...}>
+// Server Component (sin 'use client')
+import '../style/menu.css';
+import { prepareMenuAction, finalizeMenuAction, replaceMenuRecipeAction } from '@/app/menu/[id]/actions';
 
-import { prepareMenuAction, finalizeMenuAction } from '@/app/menu/[id]/actions'
+type Shortage = {
+  name: string;
+  required: { quantity: number; unit: string };
+  available?: { quantity: number; unit: string };
+  missing: { quantity: number; unit: string };
+  reason: 'unit_mismatch' | 'not_found' | 'insufficient';
+};
 
-type Props = { menu: any }
+type Simulation = {
+  day: string;                   // 'mon' | 'tue' ...
+  shortages: Shortage[];
+  available?: Array<{ name: string; quantity: number; unit: string }>;
+};
+
+type Props = {
+  menu: any;
+  simulation?: Simulation | null; // <-- opcional: pásalo desde la action de prepare (dryRun)
+};
 
 const DAYS: Array<{ key: string; label: string }> = [
   { key: 'mon', label: 'Lunes' },
@@ -13,25 +29,27 @@ const DAYS: Array<{ key: string; label: string }> = [
   { key: 'fri', label: 'Viernes' },
   { key: 'sat', label: 'Sábado' },
   { key: 'sun', label: 'Domingo' },
-]
+];
 
-export default function MenuView({ menu }: Props) {
+export default function MenuView({ menu, simulation }: Props) {
   return (
-    <div className="mx-auto max-w-3xl p-6 space-y-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Menú semanal</h1>
-          <p className="text-sm text-gray-500">
+    <div className="menuContainer">
+      {/* Header */}
+      <header className="menuHeader">
+        <div className="menuHeaderLeft">
+          <h1 className="menuTitle">Menú semanal</h1>
+          <p className="menuSubtitle">
             Personas: {menu?.persons ?? 2} · Estado: {menu?.status ?? 'draft'}
           </p>
         </div>
 
         {/* Finalizar menú */}
-        <form action={finalizeMenuAction.bind(null, menu.id, menu.version)}>
+        <form className="menuFinalizeForm" action={finalizeMenuAction.bind(null, menu.id, menu.version)}>
           <button
             type="submit"
-            className="rounded bg-black text-white px-4 py-2 disabled:opacity-50"
+            className="btnPrimary"
             disabled={menu?.status === 'final'}
+            aria-disabled={menu?.status === 'final'}
           >
             {menu?.status === 'final' ? 'Finalizado' : 'Finalizar'}
           </button>
@@ -39,75 +57,127 @@ export default function MenuView({ menu }: Props) {
       </header>
 
       {/* Días y recetas */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <section className="menuDaysGrid">
         {DAYS.map(({ key, label }) => {
-          const r = menu?.days?.[key]
+          const r = menu?.days?.[key];
+          const isSimulatedDay = simulation?.day === key;
+
           return (
-            <div key={key} className="rounded border p-4">
-              <h3 className="font-medium">{label}</h3>
+            <article key={key} className="menuDayCard">
+              <div className="menuDayHead">
+                <h3 className="menuDayTitle">{label}</h3>
+
+                {/* Acciones por día */}
+                <div className="dayActions">
+                  {/* Simular (dryRun) */}
+                  <form
+                    action={prepareMenuAction.bind(null, menu.id)}
+                    className="inlineForm"
+                  >
+                    <input type="hidden" name="scope" value="days" />
+                    <input type="hidden" name="days" value={key} />
+                    <input type="hidden" name="dryRun" value="true" />
+                    {/* hint para que el server sepa mostrar modal de este día */}
+                    <input type="hidden" name="showDay" value={key} />
+                    <button type="submit" className="btnGhost">Simular</button>
+                  </form>
+
+                  {/* Volver a generar SOLO este día */}
+                  <form 
+                    action={replaceMenuRecipeAction} 
+                    className="inlineForm"
+                  >
+                    <input type="hidden" name="id" value={menu.id} />
+                    <input type="hidden" name="day" value={key} />
+                    <button type="submit" className="btnGhost">Volver a generar</button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Contenido receta */}
               {r ? (
-                <div className="mt-2 space-y-1">
-                  <div className="font-semibold">{r.title}</div>
-                  <div className="text-sm text-gray-600">
+                <div className="menuRecipe">
+                  <div className="menuRecipeTitle">{r.title}</div>
+                  <div className="menuRecipeMeta">
                     {r.durationMin ?? '-'} min · {r.servings ?? menu?.persons ?? 2} porciones
                   </div>
-                  <ul className="list-disc pl-5 text-sm">
+                  <ul className="menuIngList">
                     {r.ingredients?.map((ing: any, i: number) => (
-                      <li key={i}>
-                        {ing.name}: {ing.quantity} {ing.unit}
+                      <li key={i} className="menuIngItem">
+                        <span className="menuIngName">{ing.name}</span>: {ing.quantity} {ing.unit}
                       </li>
                     ))}
                   </ul>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 mt-2">— Sin receta asignada —</p>
+                <p className="menuEmptyDay">— Sin receta asignada —</p>
               )}
-            </div>
-          )
+
+              {/* Modal de simulación (solo si simulation && day coincide) */}
+              {isSimulatedDay && (
+                <div className="modalBackdrop">
+                  <div className="modalCard modalMd">
+                    <div className="modalTitleBar">
+                      <h4>Simulación — {label}</h4>
+                      {/* Botón cerrar: vuelve a la misma página sin estado de simulación */}
+                      <form method="GET" className="inlineForm">
+                        <button className="iconClose" aria-label="Cerrar">×</button>
+                      </form>
+                    </div>
+
+                    <div className="modalBody">
+                      {/* Disponibles (si llega el arreglo); si no, lo omitimos */}
+                      {simulation?.available && simulation.available.length > 0 && (
+                        <section className="simBlock">
+                          <h5 className="simHeading ok">Disponibles en despensa</h5>
+                          <ul className="simList">
+                            {simulation.available.map((a, idx) => (
+                              <li key={idx} className="simItem">
+                                <span className="ingName">{a.name}</span>
+                                <span className="ingQty">{a.quantity} {a.unit}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </section>
+                      )}
+
+                      {/* Faltantes */}
+                      <section className="simBlock">
+                        <h5 className="simHeading warn">Faltantes</h5>
+                        {simulation?.shortages?.length ? (
+                          <ul className="simList">
+                            {simulation.shortages.map((s, idx) => (
+                              <li key={idx} className="simItem shortage">
+                                <span className="ingName">{s.name}</span>
+                                <span className="ingQty">
+                                  falta {s.missing.quantity} {s.missing.unit}
+                                  {s.reason === 'unit_mismatch' ? ' (unidad incompatible)' :
+                                   s.reason === 'insufficient' ? ' (insuficiente)' :
+                                   ' (no encontrado)'}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="simEmpty">Sin faltantes 🎉</p>
+                        )}
+                      </section>
+                    </div>
+
+                    <div className="modalActions">
+                      {/* CTA ir a Despensa o cerrar */}
+                      <a href="/pantry" className="btnGhost">Ver en Despensa</a>
+                      <form method="GET" className="inlineForm">
+                        <button className="primary">Cerrar</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </article>
+          );
         })}
       </section>
-
-      {/* Preparar menú (descontar despensa o simular) */}
-      <section className="rounded border p-4">
-        <h2 className="font-semibold mb-2">Preparar</h2>
-        <form action={prepareMenuAction.bind(null, menu.id)} className="space-y-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-2">
-              <input type="radio" name="scope" value="all" defaultChecked />
-              Toda la semana
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="radio" name="scope" value="weekdays" />
-              Lunes a viernes
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="radio" name="scope" value="days" />
-              Días específicos
-            </label>
-          </div>
-
-          {/* Días específicos opcionales (enviar multiple days[]) */}
-          <div className="flex flex-wrap gap-2">
-            {DAYS.map(({ key, label }) => (
-              <label key={key} className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="days" value={key} />
-                {label}
-              </label>
-            ))}
-          </div>
-
-          <label className="flex items-center gap-2">
-            <input type="checkbox" name="dryRun" defaultChecked />
-            Simular (no descontar despensa)
-          </label>
-
-          <div>
-            <button type="submit" className="rounded bg-black text-white px-4 py-2">
-              Ejecutar
-            </button>
-          </div>
-        </form>
-      </section>
     </div>
-  )
+  );
 }

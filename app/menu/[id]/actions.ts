@@ -3,13 +3,14 @@ import { redirect } from 'next/navigation'
 import { API_URL } from '@/lib/config/constants'
 import { getIdTokenOrRedirect } from '@/lib/auth/session'
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
 import { Day } from '@/lib/types'
 
 export async function prepareMenuAction(id: string, formData: FormData) {
   const idToken = await getIdTokenOrRedirect(`/menu/${id}`)
 
   const scope = (formData.get('scope') as 'all'|'weekdays'|'days') ?? 'all'
-  const dryRun = formData.get('dryRun') === 'on'
+  const dryRun = formData.get('dryRun') === 'on' || String(formData.get('dryRun')) === 'true'
   const days = formData.getAll('days') as string[] | undefined
 
   const payload: any = { scope, dryRun }
@@ -25,13 +26,34 @@ export async function prepareMenuAction(id: string, formData: FormData) {
     cache: 'no-store',
   })
 
-  // Redirige con mensaje de error si algo falla
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
     redirect(`/menu/${id}?error=${encodeURIComponent(err?.message ?? 'No se pudo preparar el menú')}`)
   }
 
-  // Recarga la vista del menú (SSR)
+  // ✨ Si es simulación de UN solo día, guarda resultado en cookie "flash" y muestra modal
+  if (dryRun && scope === 'days' && Array.isArray(days) && days.length === 1) {
+    const day = String(days[0])
+    // La respuesta del prepare dryRun debe traer shortages/available (según tu backend)
+    const json = await r.json().catch(() => null)
+    const simulation = json ? {
+      day,
+      shortages: json?.shortages ?? [],
+      available: json?.available ?? [],
+    } : { day, shortages: [], available: [] }
+
+    const value = encodeURIComponent(JSON.stringify(simulation))
+    cookies().set('menu_sim', value, {
+      path: `/menu/${id}`,
+      maxAge: 20,         // segundos
+      httpOnly: true,
+      sameSite: 'lax',
+    })
+
+    redirect(`/menu/${id}?showDay=${day}`)
+  }
+
+  // Para el resto de casos, recarga normal
   redirect(`/menu/${id}`)
 }
 
@@ -104,7 +126,6 @@ export async function replaceMenuRecipeAction(formData: FormData) {
   });
 
   if (!res.ok) {
-    // intenta extraer mensaje de error coherente
     let msg = `PATCH /v1/menu/${id} failed (${res.status})`;
     try {
       const j = await res.json();
@@ -113,7 +134,6 @@ export async function replaceMenuRecipeAction(formData: FormData) {
     throw new Error(msg);
   }
 
-  // Revalida y vuelve a la vista del menú
   revalidatePath(`/menu/${id}`);
   redirect(`/menu/${id}`);
 }
